@@ -144,13 +144,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 text-[11.5px] font-semibold text-emerald-800">
-            <button onClick={() => setPolicyModal('privacy')} className="hover:text-emerald-950 hover:underline cursor-pointer">Bảo mật</button>
+            <button onClick={() => setPolicyModal('privacy')} className="hover:text-emerald-950 hover:underline cursor-pointer">Chính sách bảo mật</button>
             <span className="text-gray-300">•</span>
-            <button onClick={() => setPolicyModal('attendance')} className="hover:text-emerald-950 hover:underline cursor-pointer">Quy chế chấm công</button>
+            <button onClick={() => setPolicyModal('attendance')} className="hover:text-emerald-950 hover:underline cursor-pointer">Quy định chấm công</button>
             <span className="text-gray-300">•</span>
-            <button onClick={() => setPolicyModal('cookie')} className="hover:text-emerald-950 hover:underline cursor-pointer">Cookie</button>
+            <button onClick={() => setPolicyModal('cookie')} className="hover:text-emerald-950 hover:underline cursor-pointer">Chính sách Cookie</button>
             <span className="text-gray-300">•</span>
-            <button onClick={() => setPolicyModal('support')} className="hover:text-emerald-950 hover:underline cursor-pointer">Hỗ trợ</button>
+            <button onClick={() => setPolicyModal('support')} className="hover:text-emerald-950 hover:underline cursor-pointer">Báo sự cố &amp; Hỗ trợ</button>
           </div>
 
           <div className="text-center md:text-right text-sm text-slate-600">

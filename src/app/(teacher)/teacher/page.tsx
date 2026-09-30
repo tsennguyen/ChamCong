@@ -3,9 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from 'next-auth/react';
-import Link from 'next/link';
 import {
-  KeyRound,
   CalendarCheck,
   ChevronDown,
   ChevronUp,
@@ -210,32 +208,22 @@ export default function TeacherPage() {
             </div>
           </div>
 
-          {/* Right Header: Greeting & Quick Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Right Header: Greeting & Logout */}
+          <div className="flex items-center gap-2 shrink-0">
             {/* Greeting badge - PROMINENTLY VISIBLE ON MOBILE */}
-            <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200/90 px-2 sm:px-3 py-1 rounded-full text-xs font-bold shadow-xs max-w-[130px] sm:max-w-none">
+            <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200/90 px-2.5 sm:px-3 py-1 rounded-full text-xs font-bold shadow-xs max-w-[150px] sm:max-w-none">
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
               <span className="truncate">{greeting || 'Giáo viên'}</span>
             </div>
 
-            {/* Đổi mật khẩu */}
-            <Link
-              href="/change-password"
-              className="flex items-center gap-1 border border-gray-200 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs text-gray-600 hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all"
-              title="Đổi mật khẩu tài khoản"
-            >
-              <KeyRound className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span className="hidden sm:inline font-medium">Đổi MK</span>
-            </Link>
-
             {/* Thoát */}
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="flex items-center gap-1 border border-gray-200 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs text-gray-600 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all cursor-pointer"
+              className="flex items-center gap-1 border border-gray-200 px-2.5 py-1.5 rounded-lg text-xs text-gray-600 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all cursor-pointer"
               title="Đăng xuất"
             >
               <LogOut className="w-3.5 h-3.5 text-gray-500 hover:text-red-500 shrink-0" />
-              <span className="hidden sm:inline font-medium">Thoát</span>
+              <span className="font-medium">Thoát</span>
             </button>
           </div>
         </div>
@@ -892,28 +880,28 @@ export default function TeacherPage() {
             onClick={() => setPolicyModal('privacy')}
             className="hover:text-emerald-950 hover:underline transition-colors cursor-pointer"
           >
-            🛡️ Chính sách bảo mật
+            Chính sách bảo mật
           </button>
           <span className="text-gray-300 hidden sm:inline">•</span>
           <button
             onClick={() => setPolicyModal('attendance')}
             className="hover:text-emerald-950 hover:underline transition-colors cursor-pointer"
           >
-            📋 Quy chế chấm công
+            Quy định chấm công
           </button>
           <span className="text-gray-300 hidden sm:inline">•</span>
           <button
             onClick={() => setPolicyModal('cookie')}
             className="hover:text-emerald-950 hover:underline transition-colors cursor-pointer"
           >
-            🍪 Chính sách Cookie
+            Chính sách Cookie
           </button>
           <span className="text-gray-300 hidden sm:inline">•</span>
           <button
             onClick={() => setPolicyModal('support')}
             className="hover:text-emerald-950 hover:underline transition-colors cursor-pointer"
           >
-            📞 Báo sự cố / Hỗ trợ
+            Báo sự cố &amp; Hỗ trợ
           </button>
         </div>
 

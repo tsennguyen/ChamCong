@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { Shield, FileText, Cookie, PhoneCall, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export type PolicyType = 'privacy' | 'attendance' | 'cookie' | 'support' | null;
 
@@ -16,23 +15,17 @@ export function PolicyModals({ activePolicy, onClose }: PolicyModalsProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[85vh]">
-        {/* Header */}
+        {/* Header - No icons */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-          <div className="flex items-center gap-2.5">
-            {activePolicy === 'privacy' && <Shield className="w-5 h-5 text-emerald-600" />}
-            {activePolicy === 'attendance' && <FileText className="w-5 h-5 text-emerald-600" />}
-            {activePolicy === 'cookie' && <Cookie className="w-5 h-5 text-emerald-600" />}
-            {activePolicy === 'support' && <PhoneCall className="w-5 h-5 text-emerald-600" />}
-            <h3 className="font-bold text-slate-900 text-base">
-              {activePolicy === 'privacy' && 'Chính sách Bảo mật & Dữ liệu Nhân sự'}
-              {activePolicy === 'attendance' && 'Quy định Chấm công & Tính giờ làm việc'}
-              {activePolicy === 'cookie' && 'Chính sách Cookie & Phiên làm việc'}
-              {activePolicy === 'support' && 'Hỗ trợ Kỹ thuật & Báo cáo Sự cố'}
-            </h3>
-          </div>
+          <h3 className="font-bold text-slate-900 text-base">
+            {activePolicy === 'privacy' && 'Chính sách Bảo mật & Dữ liệu'}
+            {activePolicy === 'attendance' && 'Quy định Chấm công & Giờ làm việc'}
+            {activePolicy === 'cookie' && 'Chính sách Cookie & Phiên làm việc'}
+            {activePolicy === 'support' && 'Báo cáo Sự cố & Hỗ trợ Kỹ thuật'}
+          </h3>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
+            className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -51,13 +44,13 @@ export function PolicyModals({ activePolicy, onClose }: PolicyModalsProps) {
               <div>
                 <h4 className="font-bold text-slate-900 mb-1">2. Cam kết bảo mật</h4>
                 <p>
-                  Dữ liệu điểm danh và thông tin cá nhân của thầy cô được mã hóa bảo mật chuẩn công nghiệp, chỉ lưu trữ trên máy chủ an toàn và đồng bộ nội bộ sang Google Sheets của Ban Giám Hiệu. Nhà trường cam kết tuyệt đối không chia sẻ, thương mại hóa hay cung cấp thông tin cho bất kỳ bên thứ ba nào khác.
+                  Dữ liệu điểm danh và thông tin cá nhân của thầy cô được mã hóa bảo mật chuẩn công nghiệp, chỉ lưu trữ trên máy chủ an toàn và đồng bộ nội bộ sang Google Sheets của Trường Mầm Non LUMI. Nhà trường cam kết tuyệt đối không chia sẻ, thương mại hóa hay cung cấp thông tin cho bất kỳ bên thứ ba nào khác.
                 </p>
               </div>
               <div>
                 <h4 className="font-bold text-slate-900 mb-1">3. Quyền của giáo viên</h4>
                 <p>
-                  Giáo viên có quyền tra cứu lịch sử chấm công cá nhân, yêu cầu xác nhận điều chỉnh khi có sự cố kỹ thuật và chủ động thay đổi mật khẩu tài khoản bất cứ lúc nào.
+                  Giáo viên có quyền tra cứu lịch sử chấm công cá nhân và yêu cầu xác nhận điều chỉnh khi có sự cố kỹ thuật. Về bảo mật tài khoản, giáo viên không có quyền thay đổi mật khẩu chủ động bất cứ lúc nào mà liên hệ Quản trị viên (Admin) nếu gặp sự cố; hệ thống chỉ yêu cầu đổi mật khẩu ở lần đầu đăng nhập.
                 </p>
               </div>
             </>
@@ -68,8 +61,8 @@ export function PolicyModals({ activePolicy, onClose }: PolicyModalsProps) {
               <div>
                 <h4 className="font-bold text-slate-900 mb-1">1. Thời gian làm việc chuẩn</h4>
                 <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>Ca chính (Hành chính)</strong>: Từ 07:00 đến 17:00 (hoặc 07:30 đến 17:30 theo phân công).</li>
-                  <li><strong>Ca ngoài giờ (Trông muộn)</strong>: Từ 18:00 đến 19:30 (hoặc 18:00 đến 20:30).</li>
+                  <li><strong>Ca chính</strong>: Từ 07:00 đến 17:00 (hoặc theo phân công ca).</li>
+                  <li><strong>Ca ngoài giờ</strong>: Từ 18:00 đến 19:30 (hoặc 18:00 đến 20:30).</li>
                 </ul>
               </div>
               <div>
@@ -82,14 +75,8 @@ export function PolicyModals({ activePolicy, onClose }: PolicyModalsProps) {
                 <h4 className="font-bold text-slate-900 mb-1">3. Quy định Tăng ca</h4>
                 <ul className="list-disc pl-5 space-y-1">
                   <li><strong>Ca chính</strong>: Làm việc quá giờ tan ca được tính tăng ca với mức thù lao quy định là <strong>40.000đ/giờ</strong>.</li>
-                  <li><strong>Ca ngoài giờ</strong>: Đã được chi trả theo chế độ khoán ca riêng, <strong>không áp dụng tính phụ cấp tăng ca (0đ)</strong>.</li>
+                  <li><strong>Ca ngoài giờ</strong>: Đã được chi trả theo chế độ khoán ca riêng, <strong>không áp dụng tính phụ cấp tăng ca</strong>.</li>
                 </ul>
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 mb-1">4. Quy định ca hợp lệ (Tính công)</h4>
-                <p>
-                  Thời gian làm việc tối thiểu của một ca phải đạt từ <strong>30 phút trở lên</strong>. Các lượt check-in rồi check-out tức thì dưới 30 phút sẽ được đánh dấu <em>&quot;Không đủ giờ làm&quot;</em> và <strong>không được tính công (0 công)</strong>.
-                </p>
               </div>
             </>
           )}
@@ -122,23 +109,23 @@ export function PolicyModals({ activePolicy, onClose }: PolicyModalsProps) {
               <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
                 <h4 className="font-bold text-emerald-900 mb-1">Kênh tiếp nhận sự cố chấm công</h4>
                 <p className="text-emerald-800 text-xs">
-                  Nếu cô gặp sự cố: Quên điện thoại, hết pin, thiết bị không kết nối được WiFi trường hoặc quên bấm check-out, vui lòng thông báo ngay cho Quản lý cơ sở để được hỗ trợ ghi nhận thủ công.
+                  Nếu cô gặp sự cố: Quên điện thoại, hết pin, thiết bị không kết nối được WiFi trường hoặc quên bấm check-out, vui lòng thông báo ngay cho Quản lý cơ sở hoặc Kỹ thuật viên để được hỗ trợ xử lý kịp thời.
                 </p>
               </div>
               <div className="space-y-2 pt-2">
                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <div>
-                    <div className="font-bold text-slate-800">Quản lý cơ sở / Ban Giám Hiệu</div>
-                    <div className="text-xs text-slate-500">Cô Nguyễn Thị My</div>
+                    <div className="font-bold text-slate-800">Quản lý cơ sở</div>
+                    <div className="text-xs text-slate-600 font-medium">Phan Vân</div>
                   </div>
-                  <span className="font-bold text-emerald-700 text-xs bg-white px-2.5 py-1.5 rounded-lg border border-slate-200">
-                    my@lumi.vn
+                  <span className="font-semibold text-emerald-800 text-xs bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+                    Cơ sở Lumi Preschool
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <div>
-                    <div className="font-bold text-slate-800">Bộ phận Kỹ thuật &amp; Vận hành</div>
-                    <div className="text-xs text-slate-500">Nguyễn Việt Thành</div>
+                    <div className="font-bold text-slate-800">Kỹ thuật viên hệ thống</div>
+                    <div className="text-xs text-slate-600 font-medium">Nguyễn Việt Thành</div>
                   </div>
                   <a
                     href="mailto:vietthanhnguyen.tsen@gmail.com"
@@ -156,7 +143,7 @@ export function PolicyModals({ activePolicy, onClose }: PolicyModalsProps) {
         <div className="px-6 py-3 border-t border-slate-100 flex justify-end bg-slate-50/50">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-colors"
+            className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
           >
             Đã hiểu &amp; Đóng
           </button>
