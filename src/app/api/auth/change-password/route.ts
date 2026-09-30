@@ -17,8 +17,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới' }, { status: 400 });
     }
 
-    if (new_password.length < 4) {
-      return NextResponse.json({ error: 'Mật khẩu mới phải có ít nhất 4 ký tự' }, { status: 400 });
+    if (new_password.length < 6) {
+      return NextResponse.json({ error: 'Mật khẩu mới phải có ít nhất 6 ký tự' }, { status: 400 });
     }
 
     const supabase = createAdminClient();

@@ -29,10 +29,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email hoặc mật khẩu không đúng');
         }
 
-        const isPasswordValid = (await bcrypt.compare(
+        const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password_hash
-        )) || (cleanEmail.startsWith('test') && (credentials.password === '1234' || credentials.password === 'test123'));
+        );
 
         if (!isPasswordValid) {
           throw new Error('Email hoặc mật khẩu không đúng');

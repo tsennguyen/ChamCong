@@ -28,8 +28,8 @@ export default function ChangePasswordPage() {
       return;
     }
 
-    if (newPassword.length < 4) {
-      setError('Mật khẩu mới phải có ít nhất 4 ký tự');
+    if (newPassword.length < 6) {
+      setError('Mật khẩu mới phải có ít nhất 6 ký tự');
       return;
     }
 
