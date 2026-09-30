@@ -342,23 +342,7 @@ export default function TeacherPage() {
           </div>
         </section>
 
-        {/* Section 4: Giới thiệu trường */}
-        <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#2e8b57]" />
-            <h3 className="text-[15px] font-bold text-gray-800">
-              LUMI Preschool - Mầm Non Trải Nghiệm STEAM & Tiếng Anh
-            </h3>
-          </div>
-          <p className="text-[13.5px] leading-relaxed text-gray-600 mb-3 italic">
-            &ldquo;Ở LUMI, mỗi em bé không chỉ được chăm sóc, mà được cô quan sát, ghi nhận và đồng hành theo nhịp phát triển riêng. Con học qua trải nghiệm thực tế, làm quen tiếng Anh tự nhiên và rèn tự lập, cảm xúc, nề nếp mỗi ngày.&rdquo;
-          </p>
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#2e8b57] bg-[#e8f5e9] px-3.5 py-2 rounded-lg">
-            <span>📍 T16-33, Vinhomes Grand Park, TP. Thủ Đức</span>
-          </div>
-        </section>
-
-        {/* Section 5: Guide */}
+        {/* Section 4: Guide */}
         <section className="bg-white rounded-[14px] shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0] overflow-hidden">
           <button
             onClick={() => setGuideOpen(!guideOpen)}
@@ -385,17 +369,23 @@ export default function TeacherPage() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-6 px-4 bg-white border-t border-[#eef2f0] flex flex-col gap-1.5 text-xs text-gray-500">
+      <footer className="text-center py-6 px-4 bg-white border-t border-[#eef2f0] flex flex-col gap-2 text-xs text-gray-500">
         <div className="font-bold text-gray-800 text-sm">
           LUMI Preschool — Mầm Non Khai Minh
         </div>
-        <div className="text-gray-500">
+        <div className="text-xs font-semibold text-[#2e8b57]">
+          LUMI Preschool - Mầm Non Trải Nghiệm STEAM & Tiếng Anh
+        </div>
+        <div className="max-w-[650px] mx-auto text-[12px] leading-relaxed text-gray-500 italic px-2">
+          &ldquo;Ở LUMI, mỗi em bé không chỉ được chăm sóc, mà được cô quan sát, ghi nhận và đồng hành theo nhịp phát triển riêng. Con học qua trải nghiệm thực tế, làm quen tiếng Anh tự nhiên và rèn tự lập, cảm xúc, nề nếp mỗi ngày.&rdquo;
+        </div>
+        <div className="text-gray-500 font-medium">
           📍 T16-33, Vinhomes Grand Park, TP. Thủ Đức
         </div>
-        <div className="text-gray-500 mt-1">
+        <div className="text-gray-500 mt-1 pt-2 border-t border-gray-100">
           Thiết kế &amp; Phát triển hệ thống bởi: <a href="mailto:vietthanhnguyen.tsen@gmail.com" className="text-[#2e8b57] font-semibold hover:underline">Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)</a>
         </div>
-        <div className="text-[11px] text-gray-400 mt-0.5">© 2026 LUMI Preschool. All rights reserved.</div>
+        <div className="text-[11px] text-gray-400">© 2026 LUMI Preschool. All rights reserved.</div>
       </footer>
     </div>
   );
