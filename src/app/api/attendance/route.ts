@@ -305,3 +305,33 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
+
+// DELETE — Xóa bản ghi chấm công (admin)
+export async function DELETE(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || (session.user as any).role !== 'admin') {
+      return NextResponse.json({ error: 'Không có quyền quản trị' }, { status: 403 });
+    }
+
+    const url = new URL(req.url);
+    const id = url.searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Thiếu id bản ghi' }, { status: 400 });
+    }
+
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from('attendance_records')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, message: 'Đã xóa bản ghi chấm công' });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Lỗi hệ thống';
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
