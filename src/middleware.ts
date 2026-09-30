@@ -6,10 +6,6 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    // Force password change
-    if (token?.must_change_password && path !== '/change-password') {
-      return NextResponse.redirect(new URL('/change-password', req.url));
-    }
 
     // Admin routes protection
     if (path.startsWith('/admin') && token?.role !== 'admin') {

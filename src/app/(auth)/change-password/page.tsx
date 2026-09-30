@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, KeyRound } from 'lucide-react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -50,18 +50,29 @@ export default function ChangePasswordPage() {
       if (!res.ok) {
         setError(data.error || 'Đã xảy ra lỗi, vui lòng thử lại');
         setLoading(false);
-      } else {
-        // Force refresh session token
-        await update({ must_change_password: false });
-        
-        // Redirect based on role
-        if ((session?.user as any)?.role === 'admin') {
-          router.push('/admin');
-        } else {
-          router.push('/teacher');
-        }
-        router.refresh();
+        return;
       }
+
+      // Re-authenticate or update session to obtain fresh JWT token
+      const userEmail = data.email || (session?.user as any)?.email;
+      if (userEmail) {
+        try {
+          await signIn('credentials', {
+            email: userEmail,
+            password: newPassword,
+            redirect: false,
+          });
+        } catch {
+          // Fallback to session update if signIn fails
+          try {
+            await update({ must_change_password: false });
+          } catch {}
+        }
+      }
+
+      // Perform a full hard navigation to avoid stale router state or cached redirects
+      const targetUrl = data.role === 'admin' ? '/admin' : '/teacher';
+      window.location.href = targetUrl;
     } catch (err) {
       setError('Đã xảy ra lỗi kết nối, vui lòng thử lại');
       setLoading(false);

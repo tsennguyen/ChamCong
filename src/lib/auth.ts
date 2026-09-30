@@ -50,12 +50,18 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
         token.gender = (user as any).gender;
         token.must_change_password = (user as any).must_change_password;
+      }
+      if (trigger === 'update') {
+        token.must_change_password = false;
+        if (session && typeof session === 'object' && 'must_change_password' in session) {
+          token.must_change_password = (session as any).must_change_password;
+        }
       }
       // Đảm bảo role không bị mất
       if (!token.role && token.email) {
