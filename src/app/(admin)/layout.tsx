@@ -153,11 +153,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button onClick={() => setPolicyModal('support')} className="hover:text-emerald-950 hover:underline cursor-pointer">Báo sự cố &amp; Hỗ trợ</button>
           </div>
 
-          <div className="text-center md:text-right text-sm text-slate-600">
-            Thiết kế &amp; Phát triển:{' '}
+          <div className="text-center md:text-right text-xs text-slate-600 flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5">
+            <span>Thiết kế &amp; Phát triển:</span>
             <a
               href="mailto:vietthanhnguyen.tsen@gmail.com"
-              className="text-[#2e8b57] font-bold hover:underline"
+              className="text-[#2e8b57] font-bold hover:underline whitespace-nowrap"
             >
               Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)
             </a>

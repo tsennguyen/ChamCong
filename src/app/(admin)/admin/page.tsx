@@ -350,95 +350,95 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPI Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: Tổng lượt chấm công */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Tổng ca chấm công
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
+                Tổng ca
               </span>
-              <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-                <Users className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-slate-900">{totalShifts}</span>
+            <div className="mt-1.5 sm:mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl sm:text-3xl font-black text-slate-900">{totalShifts}</span>
               <span className="text-xs font-semibold text-slate-500">lượt</span>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-            <span>Ca chính: <strong className="text-slate-800">{regularCount}</strong></span>
+          <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] sm:text-xs text-slate-600">
+            <span>Chính: <strong className="text-slate-800">{regularCount}</strong></span>
             <span>Ngoài giờ: <strong className="text-slate-800">{overtimeShiftCount}</strong></span>
           </div>
         </div>
 
         {/* Card 2: Ca hợp lệ (Tính công) */}
-        <div className="bg-white p-5 rounded-2xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/40 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/40 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                Ca hợp lệ (Tính công)
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-700">
+                Hợp lệ
               </span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                <CheckCircle2 className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-emerald-800">{validCheckedOut.length}</span>
+            <div className="mt-1.5 sm:mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl sm:text-3xl font-black text-emerald-800">{validCheckedOut.length}</span>
               <span className="text-xs font-semibold text-emerald-600">
                 {totalShifts > 0 ? `(${Math.round((validCheckedOut.length / totalShifts) * 100)}%)` : ''}
               </span>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-emerald-100/80 flex items-center justify-between text-xs text-slate-600">
-            <span>Đang làm việc: <strong className="text-blue-700 font-bold">{currentlyWorking.length}</strong></span>
-            <span className="text-emerald-700 font-medium">Đủ tiêu chuẩn</span>
+          <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-emerald-100/80 flex items-center justify-between text-[11px] sm:text-xs text-slate-600">
+            <span>Đang làm: <strong className="text-blue-700 font-bold">{currentlyWorking.length}</strong></span>
+            <span className="text-emerald-700 font-medium hidden sm:inline">Đủ tiêu chuẩn</span>
           </div>
         </div>
 
         {/* Card 3: Ca không đủ giờ (0 công) */}
-        <div className="bg-white p-5 rounded-2xl border border-rose-100 bg-gradient-to-br from-white to-rose-50/30 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-rose-100 bg-gradient-to-br from-white to-rose-50/30 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-rose-700">
-                Không đủ giờ (0 công)
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-rose-700">
+                Không đủ giờ
               </span>
-              <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
-                <XCircle className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+                <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-rose-700">{insufficientRecords.length}</span>
-              <span className="text-xs font-semibold text-rose-600">ca vi phạm</span>
+            <div className="mt-1.5 sm:mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl sm:text-3xl font-black text-rose-700">{insufficientRecords.length}</span>
+              <span className="text-[11px] sm:text-xs font-semibold text-rose-600">ca 0 công</span>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-rose-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Làm dưới 30 phút</span>
-            <span className="text-rose-600 font-semibold">Không tính công</span>
+          <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-rose-100 flex items-center justify-between text-[11px] sm:text-xs text-slate-500">
+            <span>Dưới 30 phút</span>
+            <span className="text-rose-600 font-semibold hidden sm:inline">Không tính công</span>
           </div>
         </div>
 
         {/* Card 4: Đi trễ & Tăng ca */}
-        <div className="bg-white p-5 rounded-2xl border border-amber-100 bg-gradient-to-br from-white to-amber-50/30 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-amber-100 bg-gradient-to-br from-white to-amber-50/30 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
-                Đi trễ & Tăng ca
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-800">
+                Trễ &amp; Tăng ca
               </span>
-              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                <Clock className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between">
+            <div className="mt-1.5 sm:mt-2 flex items-baseline justify-between">
               <div>
-                <span className="text-2xl font-black text-amber-700">{lateRecords.length}</span>
-                <span className="text-xs font-semibold text-slate-500 ml-1">lượt trễ ({totalLateMinutes}p)</span>
+                <span className="text-2xl sm:text-3xl font-black text-amber-700">{lateRecords.length}</span>
+                <span className="text-[11px] sm:text-xs font-semibold text-slate-500 ml-1">lượt ({totalLateMinutes}p)</span>
               </div>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-amber-100/80 flex items-center justify-between text-xs">
-            <span className="text-slate-600">Tăng ca: <strong className="text-indigo-700">{overtimeRecords.length} lượt ({totalOTMinutes}p)</strong></span>
+          <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-amber-100/80 flex items-center justify-between text-[11px] sm:text-xs">
+            <span className="text-slate-600">TC: <strong className="text-indigo-700">+{totalOTMinutes}p</strong></span>
             <span className="text-indigo-700 font-bold">
               {totalOTAmount > 0 ? `${new Intl.NumberFormat('vi-VN').format(totalOTAmount)}đ` : '0đ'}
             </span>
@@ -589,8 +589,8 @@ export default function AdminDashboard() {
                 className="w-full bg-transparent py-2 text-xs outline-none text-slate-700 font-semibold"
               >
                 <option value="all">Tất cả loại ca</option>
-                <option value="regular">Ca chính (Hành chính)</option>
-                <option value="overtime">Ca ngoài giờ (Trông muộn)</option>
+                <option value="regular">Ca chính</option>
+                <option value="overtime">Ca ngoài giờ</option>
               </select>
             </div>
 
@@ -613,8 +613,8 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Records Table */}
-        <div className="w-full overflow-x-auto">
+        {/* Desktop Records Table (>= 768px) */}
+        <div className="hidden md:block w-full overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
@@ -652,7 +652,7 @@ export default function AdminDashboard() {
                   const noteText =
                     r.check_out_note ||
                     (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '—');
-                  const isInsufficient = noteText.includes('Không đủ giờ');
+                  const isInsufficient = noteText.includes('Không đủ giờ') || noteText.includes('Không đủ');
                   const isRegular = r.shift_type === 'regular' || r.shift?.type === 'regular';
 
                   return (
@@ -714,8 +714,10 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {r.status === 'checked_out' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Đã về
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-semibold ${
+                            isInsufficient ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          }`}>
+                            {isInsufficient ? 'Không đủ giờ' : 'Đã về'}
                           </span>
                         )}
                         {r.status === 'checked_in' && (
@@ -749,6 +751,129 @@ export default function AdminDashboard() {
                 })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile-First Card View (< 768px) */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {loading && (
+            <div className="text-center py-12 text-slate-400">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-600 mb-2" />
+              Đang tải dữ liệu...
+            </div>
+          )}
+          {!loading && filteredRecords.length === 0 && (
+            <div className="text-center py-12 text-slate-400 text-xs">
+              Không tìm thấy bản ghi chấm công nào phù hợp.
+            </div>
+          )}
+          {!loading &&
+            filteredRecords.map((r, i) => {
+              const noteText =
+                r.check_out_note ||
+                (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '—');
+              const isInsufficient = noteText.includes('Không đủ giờ') || noteText.includes('Không đủ');
+              const isRegular = r.shift_type === 'regular' || r.shift?.type === 'regular';
+
+              return (
+                <div
+                  key={r.id}
+                  className={`p-3.5 flex flex-col gap-2.5 transition-all ${
+                    isInsufficient ? 'bg-rose-50/50' : r.status === 'checked_in' ? 'bg-blue-50/20' : ''
+                  }`}
+                >
+                  {/* Header: Teacher Name, Date & Status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">
+                          {i + 1}
+                        </span>
+                        <span className="font-bold text-slate-900 text-sm">
+                          {getTitle(r.user?.gender)} {r.user?.full_name}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5 ml-6.5">
+                        {formatDate(r.attendance_date)} • <span className="font-semibold text-slate-700">{r.shift?.name || (isRegular ? 'Ca chính' : 'Ngoài giờ')}</span>
+                      </div>
+                    </div>
+
+                    {/* Status Badge */}
+                    {r.status === 'checked_out' ? (
+                      isInsufficient ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 shrink-0">
+                          Không đủ giờ
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                          Đã về
+                        </span>
+                      )
+                    ) : r.status === 'checked_in' ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                        Đang làm
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                        Cần xác nhận
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Time boxes: In & Out */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-white p-2 rounded-lg border border-slate-100 flex flex-col">
+                      <span className="text-[10px] text-slate-400 font-semibold uppercase">Vào ca</span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="font-bold text-slate-800">{formatTime(r.check_in_time)}</span>
+                        {r.late_minutes > 0 && (
+                          <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded">
+                            Trễ {r.late_minutes}p
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-2 rounded-lg border border-slate-100 flex flex-col">
+                      <span className="text-[10px] text-slate-400 font-semibold uppercase">Ra ca</span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="font-bold text-slate-800">{formatTime(r.check_out_time)}</span>
+                        {r.overtime_minutes > 0 && (
+                          <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1 py-0.5 rounded">
+                            +{r.overtime_minutes}p
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Overtime & Note */}
+                  <div className="flex items-center justify-between text-xs gap-2 pt-1 border-t border-slate-50">
+                    {r.overtime_amount > 0 ? (
+                      <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">
+                        TC: +{new Intl.NumberFormat('vi-VN').format(r.overtime_amount)}đ
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400">Không tăng ca</span>
+                    )}
+
+                    <span
+                      className={`text-[11px] px-2 py-0.5 rounded-md font-medium truncate max-w-[200px] ${
+                        isInsufficient
+                          ? 'bg-rose-100 text-rose-800 font-bold border border-rose-200'
+                          : noteText.includes('Về sớm')
+                          ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                          : noteText.includes('Đủ giờ')
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      {noteText}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>
