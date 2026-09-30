@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth-check';
 import { createAdminClient } from '@/lib/supabase/server';
 import { calculateOnCheckin, calculateOnCheckout, calculateOvertimeAmount } from '@/lib/attendance-calc';
 import { getGreeting } from '@/lib/greeting';
@@ -309,9 +310,9 @@ export async function GET(req: Request) {
 // DELETE — Xóa bản ghi chấm công (admin)
 export async function DELETE(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Không có quyền quản trị' }, { status: 403 });
+    const auth = await requireAdmin();
+    if (!auth.allowed) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const url = new URL(req.url);

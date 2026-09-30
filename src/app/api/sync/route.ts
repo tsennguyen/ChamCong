@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth-check';
 import { createAdminClient } from '@/lib/supabase/server';
 import { syncToSheets, fetchFromSheets } from '@/lib/google-sheets';
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa đăng nhập' }, { status: 401 });
+    const auth = await requireAdmin();
+    if (!auth.allowed) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const supabase = createAdminClient();
@@ -33,9 +32,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Không có quyền' }, { status: 403 });
+    const auth = await requireAdmin();
+    if (!auth.allowed) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const body = await req.json();

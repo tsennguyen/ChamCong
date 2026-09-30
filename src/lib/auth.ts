@@ -17,12 +17,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         const supabase = createAdminClient();
+        const cleanEmail = credentials.email.trim().toLowerCase();
         const { data: user, error } = await supabase
           .from('users')
           .select('*')
-          .eq('email', credentials.email)
+          .ilike('email', cleanEmail)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
 
         if (error || !user) {
           throw new Error('Email hoặc mật khẩu không đúng');
@@ -56,12 +57,16 @@ export const authOptions: NextAuthOptions = {
         token.gender = (user as any).gender;
         token.must_change_password = (user as any).must_change_password;
       }
+      // Đảm bảo role không bị mất
+      if (!token.role && token.email) {
+        token.role = token.email.toLowerCase().includes('admin') ? 'admin' : 'teacher';
+      }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
+        (session.user as any).role = token.role || (session.user.email?.toLowerCase().includes('admin') ? 'admin' : 'teacher');
         (session.user as any).gender = token.gender;
         (session.user as any).must_change_password = token.must_change_password;
       }

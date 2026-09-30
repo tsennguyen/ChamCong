@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth-check';
 import { createAdminClient } from '@/lib/supabase/server';
 import bcrypt from 'bcryptjs';
 
@@ -10,9 +9,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Chưa đăng nhập' }, { status: 401 });
+    const auth = await requireAdmin();
+    if (!auth.allowed) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const supabase = createAdminClient();
@@ -39,9 +38,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Không có quyền quản trị' }, { status: 403 });
+    const auth = await requireAdmin();
+    if (!auth.allowed) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const body = await req.json();
@@ -84,15 +83,15 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Không có quyền quản trị' }, { status: 403 });
+    const auth = await requireAdmin();
+    if (!auth.allowed) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const supabase = createAdminClient();
 
     // Không cho phép xóa chính tài khoản admin đang đăng nhập
-    if (params.id === (session.user as any).id) {
+    if (params.id === auth.user?.id) {
       return NextResponse.json({ error: 'Không thể xóa tài khoản của chính bạn' }, { status: 400 });
     }
 
