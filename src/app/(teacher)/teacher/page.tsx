@@ -15,6 +15,8 @@ import {
   Sparkles,
   XCircle,
   Plus,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { useWifiCheck } from '@/hooks/useWifiCheck';
 import { useDeviceFingerprint } from '@/hooks/useDeviceFingerprint';
@@ -486,21 +488,27 @@ export default function TeacherPage() {
             rightElement={
               network ? (
                 network.allowed ? (
-                  <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-emerald-800 bg-emerald-100/90 px-2 sm:px-2.5 py-1 rounded-full border border-emerald-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    {network.school_ssid}
-                  </span>
+                  <div
+                    className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-100/90 text-emerald-700 border border-emerald-200/80 shadow-2xs"
+                    title={`WiFi: ${network.school_ssid}`}
+                  >
+                    <Wifi className="w-4 h-4 text-emerald-700" />
+                  </div>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                    {lang === 'vi' ? 'Sai WiFi' : 'Wrong WiFi'}
-                  </span>
+                  <div
+                    className="flex items-center justify-center w-8 h-8 rounded-lg bg-rose-100 text-rose-700 border border-rose-200 shadow-2xs animate-pulse"
+                    title={lang === 'vi' ? 'Chưa đúng WiFi trường' : 'Not on school WiFi'}
+                  >
+                    <WifiOff className="w-4 h-4 text-rose-600" />
+                  </div>
                 )
               ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] text-gray-500">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse" />
-                  WiFi...
-                </span>
+                <div
+                  className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 text-gray-400 border border-gray-200"
+                  title="Checking WiFi..."
+                >
+                  <Wifi className="w-4 h-4 text-gray-400 animate-pulse" />
+                </div>
               )
             }
           />
