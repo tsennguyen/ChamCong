@@ -7,9 +7,16 @@ import { Analytics } from '@vercel/analytics/next';
 const inter = Inter({ subsets: ['latin', 'vietnamese'] });
 
 export const metadata: Metadata = {
-  title: 'Lumi Preschool - Chấm Công',
-  description: 'Hệ thống chấm công giáo viên Trường Mầm Non Lumi Preschool',
-  icons: { icon: '/favicon.ico' },
+  title: 'LUMI Preschool - Mầm Non Khai Minh | Hệ Thống Điểm Danh',
+  description: 'LUMI Preschool - Mầm Non Trải Nghiệm STEAM & Tiếng Anh. T16-33, Vinhomes Grand Park, TP. Thủ Đức.',
+  icons: {
+    icon: [
+      { url: '/logolumi.jpg', href: '/logolumi.jpg' },
+      { url: '/favicon.ico', href: '/favicon.ico' },
+    ],
+    apple: '/logolumi.jpg',
+    shortcut: '/logolumi.jpg',
+  },
 };
 
 export default function RootLayout({

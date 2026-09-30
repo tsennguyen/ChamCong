@@ -8,6 +8,7 @@ import { useDeviceFingerprint } from '@/hooks/useDeviceFingerprint';
 import { getGreeting } from '@/lib/greeting';
 import { getTodayString, formatDate, formatTime } from '@/lib/utils';
 import Image from 'next/image';
+import RealtimeClock from '@/components/RealtimeClock';
 
 interface Shift { id: string; name: string; type: string; start_time: string; end_time: string; }
 interface TodayRecord {
@@ -115,9 +116,12 @@ export default function TeacherPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] border-b border-[rgba(46,139,87,0.12)]">
         <div className="max-w-[800px] mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-2.5">
-            <Image src="/logolumi.jpg" alt="Logo" width={40} height={40} className="rounded-full shadow-[0_2px_6px_rgba(46,139,87,0.2)]" />
-            <span className="text-lg font-bold text-[#2e8b57] tracking-tight">Lumi Preschool</span>
+          <div className="flex items-center gap-3">
+            <Image src="/logolumi.jpg" alt="Logo" width={42} height={42} className="rounded-full shadow-[0_2px_6px_rgba(46,139,87,0.2)] object-cover" />
+            <div className="flex flex-col">
+              <span className="text-lg font-bold text-[#2e8b57] tracking-tight leading-tight">LUMI Preschool</span>
+              <span className="text-[11px] font-semibold text-gray-500">Mầm Non Khai Minh</span>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold text-gray-700 hidden sm:inline">{greeting}</span>
@@ -136,7 +140,12 @@ export default function TeacherPage() {
       <main className="max-w-[800px] w-full mx-auto px-4 py-4 flex flex-col gap-5 flex-1">
         {/* Section 1: Check-in/out */}
         <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0] border-l-[5px] border-l-[#2e8b57]">
-          <h2 className="text-base font-bold text-[#2e8b57] mb-4">Điểm danh</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-[#2e8b57]">Điểm danh giáo viên</h2>
+          </div>
+
+          {/* Realtime Vietnam Clock */}
+          <RealtimeClock />
 
           <div className="mb-3.5">
             <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Chọn ca làm việc</label>
@@ -333,7 +342,23 @@ export default function TeacherPage() {
           </div>
         </section>
 
-        {/* Section 4: Guide */}
+        {/* Section 4: Giới thiệu trường */}
+        <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#2e8b57]" />
+            <h3 className="text-[15px] font-bold text-gray-800">
+              LUMI Preschool - Mầm Non Trải Nghiệm STEAM & Tiếng Anh
+            </h3>
+          </div>
+          <p className="text-[13.5px] leading-relaxed text-gray-600 mb-3 italic">
+            &ldquo;Ở LUMI, mỗi em bé không chỉ được chăm sóc, mà được cô quan sát, ghi nhận và đồng hành theo nhịp phát triển riêng. Con học qua trải nghiệm thực tế, làm quen tiếng Anh tự nhiên và rèn tự lập, cảm xúc, nề nếp mỗi ngày.&rdquo;
+          </p>
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#2e8b57] bg-[#e8f5e9] px-3.5 py-2 rounded-lg">
+            <span>📍 T16-33, Vinhomes Grand Park, TP. Thủ Đức</span>
+          </div>
+        </section>
+
+        {/* Section 5: Guide */}
         <section className="bg-white rounded-[14px] shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0] overflow-hidden">
           <button
             onClick={() => setGuideOpen(!guideOpen)}
@@ -359,7 +384,19 @@ export default function TeacherPage() {
         </section>
       </main>
 
-      <footer className="text-center py-6 text-gray-400 text-[13px]">© 2026 Lumi Preschool</footer>
+      {/* Footer */}
+      <footer className="text-center py-6 px-4 bg-white border-t border-[#eef2f0] flex flex-col gap-1.5 text-xs text-gray-500">
+        <div className="font-bold text-gray-800 text-sm">
+          LUMI Preschool — Mầm Non Khai Minh
+        </div>
+        <div className="text-gray-500">
+          📍 T16-33, Vinhomes Grand Park, TP. Thủ Đức
+        </div>
+        <div className="text-gray-500 mt-1">
+          Thiết kế &amp; Phát triển hệ thống bởi: <a href="mailto:vietthanhnguyen.tsen@gmail.com" className="text-[#2e8b57] font-semibold hover:underline">Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)</a>
+        </div>
+        <div className="text-[11px] text-gray-400 mt-0.5">© 2026 LUMI Preschool. All rights reserved.</div>
+      </footer>
     </div>
   );
 }

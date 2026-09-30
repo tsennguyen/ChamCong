@@ -62,6 +62,29 @@ export function getTodayString(): string {
 }
 
 /**
+ * Get current month string in YYYY-MM format (Vietnam timezone)
+ */
+export function getCurrentMonthString(): string {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+  });
+  return formatter.format(new Date());
+}
+
+/**
+ * Get current year string in YYYY format (Vietnam timezone)
+ */
+export function getCurrentYearString(): string {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+  });
+  return formatter.format(new Date());
+}
+
+/**
  * Get current Vietnam time
  */
 export function getVietnamNow(): Date {

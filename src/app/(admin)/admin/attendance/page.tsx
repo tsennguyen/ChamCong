@@ -8,6 +8,8 @@ interface AttendanceRow {
   check_in_time: string | null; check_out_time: string | null;
   late_minutes: number; overtime_minutes: number; overtime_amount: number;
   status: string; shift_type: string;
+  check_in_note?: string | null;
+  check_out_note?: string | null;
   user?: { id: string; full_name: string; gender: string };
   shift?: { id: string; name: string; type: string };
 }
@@ -84,26 +86,44 @@ export default function AttendancePage() {
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Tăng ca</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Tiền TC</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Trạng thái</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Ghi chú / Tình trạng</th>
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={9} className="text-center py-10 text-gray-400">Đang tải...</td></tr>}
-              {!loading && records.length === 0 && <tr><td colSpan={9} className="text-center py-10 text-gray-400">Không có dữ liệu ngày {fmtDate(selectedDate)}</td></tr>}
-              {records.map((r, i) => (
-                <tr key={r.id} className={`hover:bg-slate-50 ${r.status === 'needs_review' ? 'bg-amber-50' : ''}`}>
-                  <td className="px-4 py-3 border-b border-slate-100">{i + 1}</td>
-                  <td className="px-4 py-3 border-b border-slate-100 font-semibold whitespace-nowrap">{getTitle(r.user?.gender)} {r.user?.full_name}</td>
-                  <td className="px-4 py-3 border-b border-slate-100 whitespace-nowrap">{r.shift?.name || '—'}</td>
-                  <td className="px-4 py-3 border-b border-slate-100">{fmtTime(r.check_in_time)}</td>
-                  <td className="px-4 py-3 border-b border-slate-100">{fmtTime(r.check_out_time)}</td>
-                  <td className="px-4 py-3 border-b border-slate-100">
-                    {r.late_minutes > 0 ? <span className="text-red-600 font-semibold">{r.late_minutes} phút</span> : '0'}
-                  </td>
-                  <td className="px-4 py-3 border-b border-slate-100">{r.overtime_minutes > 0 ? `${r.overtime_minutes} phút` : '—'}</td>
-                  <td className="px-4 py-3 border-b border-slate-100">{r.overtime_amount > 0 ? `${new Intl.NumberFormat('vi-VN').format(r.overtime_amount)}đ` : '—'}</td>
-                  <td className="px-4 py-3 border-b border-slate-100">{statusBadge(r.status)}</td>
-                </tr>
-              ))}
+              {loading && <tr><td colSpan={10} className="text-center py-10 text-gray-400">Đang tải...</td></tr>}
+              {!loading && records.length === 0 && <tr><td colSpan={10} className="text-center py-10 text-gray-400">Không có dữ liệu ngày {fmtDate(selectedDate)}</td></tr>}
+              {records.map((r, i) => {
+                const noteText = r.check_out_note || (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '—');
+                const isInsufficient = noteText.includes('Không đủ giờ');
+                return (
+                  <tr key={r.id} className={`hover:bg-slate-50 ${isInsufficient ? 'bg-rose-50/60' : r.status === 'needs_review' ? 'bg-amber-50' : ''}`}>
+                    <td className="px-4 py-3 border-b border-slate-100">{i + 1}</td>
+                    <td className="px-4 py-3 border-b border-slate-100 font-semibold whitespace-nowrap">{getTitle(r.user?.gender)} {r.user?.full_name}</td>
+                    <td className="px-4 py-3 border-b border-slate-100 whitespace-nowrap">{r.shift?.name || '—'}</td>
+                    <td className="px-4 py-3 border-b border-slate-100">{fmtTime(r.check_in_time)}</td>
+                    <td className="px-4 py-3 border-b border-slate-100">{fmtTime(r.check_out_time)}</td>
+                    <td className="px-4 py-3 border-b border-slate-100">
+                      {r.late_minutes > 0 ? <span className="text-red-600 font-semibold">{r.late_minutes} phút</span> : '0'}
+                    </td>
+                    <td className="px-4 py-3 border-b border-slate-100">{r.overtime_minutes > 0 ? `${r.overtime_minutes} phút` : '—'}</td>
+                    <td className="px-4 py-3 border-b border-slate-100">{r.overtime_amount > 0 ? `${new Intl.NumberFormat('vi-VN').format(r.overtime_amount)}đ` : '—'}</td>
+                    <td className="px-4 py-3 border-b border-slate-100">{statusBadge(r.status)}</td>
+                    <td className="px-4 py-3 border-b border-slate-100">
+                      <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${
+                        isInsufficient 
+                          ? 'bg-red-100 text-red-700 font-bold border border-red-200' 
+                          : noteText.includes('Về sớm') 
+                            ? 'bg-amber-100 text-amber-800 border border-amber-200' 
+                            : noteText.includes('Đủ giờ') 
+                              ? 'bg-emerald-100 text-emerald-800' 
+                              : 'text-gray-600'
+                      }`}>
+                        {noteText}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

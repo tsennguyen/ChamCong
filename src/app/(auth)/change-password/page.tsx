@@ -107,6 +107,9 @@ export default function ChangePasswordPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
               <input
                 type="password"
+                id="current-password"
+                name="current-password"
+                autoComplete="current-password"
                 required
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -120,6 +123,9 @@ export default function ChangePasswordPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
               <input
                 type="password"
+                id="new-password"
+                name="new-password"
+                autoComplete="new-password"
                 required
                 minLength={6}
                 value={newPassword}
@@ -134,6 +140,9 @@ export default function ChangePasswordPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
               <input
                 type="password"
+                id="confirm-password"
+                name="confirm-password"
+                autoComplete="new-password"
                 required
                 minLength={6}
                 value={confirmPassword}

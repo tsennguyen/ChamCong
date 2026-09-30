@@ -325,6 +325,9 @@ export async function GET(req: Request) {
     const supabase = createAdminClient();
     const url = new URL(req.url);
     const date = url.searchParams.get('date');
+    const month = url.searchParams.get('month');
+    const from = url.searchParams.get('from');
+    const to = url.searchParams.get('to');
     const userId = url.searchParams.get('user_id');
     const shiftType = url.searchParams.get('shift_type');
 
@@ -335,9 +338,17 @@ export async function GET(req: Request) {
         user:users(id, full_name, gender),
         shift:shifts(id, name, type, start_time, end_time)
       `)
-      .order('check_in_time', { ascending: true });
+      .order('attendance_date', { ascending: false })
+      .order('check_in_time', { ascending: false });
 
     if (date) query = query.eq('attendance_date', date);
+    if (month) {
+      const [y, m] = month.split('-');
+      const lastDay = new Date(parseInt(y, 10), parseInt(m, 10), 0).getDate();
+      query = query.gte('attendance_date', `${month}-01`).lte('attendance_date', `${month}-${String(lastDay).padStart(2, '0')}`);
+    }
+    if (from) query = query.gte('attendance_date', from);
+    if (to) query = query.lte('attendance_date', to);
     if (userId) query = query.eq('user_id', userId);
     if (shiftType) query = query.eq('shift_type', shiftType);
 

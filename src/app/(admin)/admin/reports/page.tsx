@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { getCurrentMonthString } from '@/lib/utils';
 
 interface TeacherReport {
   user: {
@@ -8,8 +9,10 @@ interface TeacherReport {
     full_name: string;
     gender: string;
     email: string;
+    role?: string;
   };
   days_worked: number;
+  insufficient_count: number;
   total_late_minutes: number;
   total_overtime_minutes: number;
   total_overtime_amount: number;
@@ -17,7 +20,7 @@ interface TeacherReport {
 }
 
 export default function ReportsPage() {
-  const currentMonth = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
+  const currentMonth = getCurrentMonthString(); // Vietnam timezone current month
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [report, setReport] = useState<TeacherReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,12 +49,13 @@ export default function ReportsPage() {
   const getTitle = (g?: string) => (g === 'male' ? 'Thầy' : 'Cô');
 
   const handleExportCSV = () => {
-    const headers = ['STT', 'Giáo viên', 'Email', 'Ngày công', 'Phút trễ', 'Phút tăng ca', 'Ca ngoài giờ', 'Tiền tăng ca (VNĐ)'];
+    const headers = ['STT', 'Giáo viên', 'Email', 'Ngày công chuẩn', 'Không đủ giờ (0 công)', 'Phút trễ', 'Phút tăng ca', 'Ca ngoài giờ', 'Tiền tăng ca (VNĐ)'];
     const rows = report.map((r, i) => [
       i + 1,
       `${getTitle(r.user.gender)} ${r.user.full_name}`,
       r.user.email,
       r.days_worked,
+      r.insufficient_count || 0,
       r.total_late_minutes,
       r.total_overtime_minutes,
       r.extra_sessions_count,
@@ -140,7 +144,8 @@ export default function ReportsPage() {
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b border-slate-200 w-10">#</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b border-slate-200">Giáo viên</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b border-slate-200">Email</th>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b border-slate-200 text-center">Ngày công</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b border-slate-200 text-center">Ngày công chuẩn</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b border-slate-200 text-center">Không đủ giờ</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b border-slate-200 text-center">Phút trễ</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b border-slate-200 text-center">Tăng ca (phút)</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b border-slate-200 text-center">Ca ngoài giờ</th>
@@ -149,10 +154,10 @@ export default function ReportsPage() {
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={8} className="text-center py-10 text-gray-400">Đang tổng hợp số liệu...</td></tr>
+                <tr><td colSpan={9} className="text-center py-10 text-gray-400">Đang tổng hợp số liệu...</td></tr>
               )}
               {!loading && report.length === 0 && (
-                <tr><td colSpan={8} className="text-center py-10 text-gray-400">Không có dữ liệu trong tháng {selectedMonth}</td></tr>
+                <tr><td colSpan={9} className="text-center py-10 text-gray-400">Không có dữ liệu trong tháng {selectedMonth}</td></tr>
               )}
               {report.map((r, i) => (
                 <tr key={r.user.id} className="hover:bg-slate-50">
@@ -163,6 +168,15 @@ export default function ReportsPage() {
                   <td className="px-4 py-3.5 border-b border-slate-100 text-gray-500 text-xs">{r.user.email}</td>
                   <td className="px-4 py-3.5 border-b border-slate-100 text-center font-bold text-[#2e8b57]">
                     {r.days_worked}
+                  </td>
+                  <td className="px-4 py-3.5 border-b border-slate-100 text-center">
+                    {r.insufficient_count > 0 ? (
+                      <span className="text-amber-700 font-semibold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-xs" title="Không tính công">
+                        {r.insufficient_count} ca
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">0</span>
+                    )}
                   </td>
                   <td className="px-4 py-3.5 border-b border-slate-100 text-center">
                     {r.total_late_minutes > 0 ? (

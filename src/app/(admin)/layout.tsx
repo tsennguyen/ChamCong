@@ -53,10 +53,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         {/* Brand */}
         <div className="px-5 py-4 flex items-center gap-3 border-b border-white/10">
-          <Image src="/logolumi.jpg" alt="Logo" width={38} height={38} className="rounded-full shrink-0" />
+          <Image src="/logolumi.jpg" alt="Logo" width={38} height={38} className="rounded-full shrink-0 object-cover" />
           <div className="flex flex-col">
-            <span className="text-[15px] font-bold text-white leading-tight">Lumi Preschool</span>
-            <span className="text-[11px] font-medium text-white/70">Quản trị nhà trường</span>
+            <span className="text-[15px] font-bold text-white leading-tight">LUMI Preschool</span>
+            <span className="text-[11px] font-medium text-white/70">Mầm Non Khai Minh</span>
           </div>
         </div>
 
@@ -129,6 +129,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Page content */}
         <div className="p-4 md:p-6 flex flex-col gap-5 flex-1">{children}</div>
+
+        {/* Footer Credit */}
+        <footer className="px-6 py-4 bg-white border-t border-gray-200 text-xs text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="text-left">
+            <div className="font-bold text-gray-800">
+              LUMI Preschool — Mầm Non Khai Minh
+            </div>
+            <div className="text-[11px] text-gray-400">
+              📍 T16-33, Vinhomes Grand Park, TP. Thủ Đức
+            </div>
+          </div>
+          <div className="text-right text-[11.5px] text-gray-500">
+            Thiết kế &amp; Phát triển: <a href="mailto:vietthanhnguyen.tsen@gmail.com" className="text-[#2e8b57] font-semibold hover:underline">Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)</a>
+          </div>
+        </footer>
       </main>
     </div>
   );
