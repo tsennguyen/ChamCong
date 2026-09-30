@@ -27,7 +27,10 @@ export async function syncToSheets(payload: SyncPayload): Promise<SyncResponse> 
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        spreadsheet_id: process.env.GOOGLE_SHEETS_ID,
+      }),
     });
 
     if (!response.ok) {

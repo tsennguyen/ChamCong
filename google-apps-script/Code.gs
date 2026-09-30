@@ -3,7 +3,16 @@
  * Hệ thống đồng bộ chấm công 2 chiều với Web App
  */
 
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+const SPREADSHEET_ID = '1cDB_bxLEjertoCi0X5Lef2r_GTLDv_uBOXGgLbbiVgk';
+
+function getSpreadsheet(customId) {
+  const id = customId || SPREADSHEET_ID;
+  try {
+    const active = SpreadsheetApp.getActiveSpreadsheet();
+    if (active) return active;
+  } catch (e) {}
+  return SpreadsheetApp.openById(id);
+}
 
 /**
  * Handle POST requests from Web App
@@ -11,22 +20,23 @@ const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
-    const { action, data } = payload;
+    const { action, data, spreadsheet_id } = payload;
+    const ss = getSpreadsheet(spreadsheet_id);
 
     let result;
 
     switch (action) {
       case 'checkin':
-        result = handleCheckin(data);
+        result = handleCheckin(data, ss);
         break;
       case 'checkout':
-        result = handleCheckout(data);
+        result = handleCheckout(data, ss);
         break;
       case 'sync_day':
-        result = handleSyncDay(data);
+        result = handleSyncDay(data, ss);
         break;
       case 'sync_month':
-        result = handleSyncMonth(data);
+        result = handleSyncMonth(data, ss);
         break;
       default:
         result = { error: 'Unknown action: ' + action };
@@ -47,6 +57,7 @@ function doPost(e) {
 function doGet(e) {
   try {
     const action = e.parameter.action || 'status';
+    const ss = getSpreadsheet(e.parameter.spreadsheet_id);
 
     let result;
 
@@ -55,10 +66,10 @@ function doGet(e) {
         result = { status: 'ok', timestamp: new Date().toISOString() };
         break;
       case 'get_month':
-        result = getMonthData(e.parameter.month, e.parameter.year);
+        result = getMonthData(e.parameter.month, e.parameter.year, ss);
         break;
       case 'get_teachers':
-        result = getTeachersFromSheet();
+        result = getTeachersFromSheet(ss);
         break;
       default:
         result = { error: 'Unknown action' };
@@ -74,57 +85,68 @@ function doGet(e) {
 }
 
 /**
- * Xử lý check-in: ghi vào sheet ngày + sheet tháng
+ * Xử lý check-in: ghi vào sheet tháng
  */
-function handleCheckin(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const monthTab = getOrCreateMonthSheet(ss, data.date);
+function handleCheckin(data, ss) {
+  const targetSs = ss || getSpreadsheet();
+  const monthTab = getOrCreateMonthSheet(targetSs, data.date);
   const today = Utilities.formatDate(new Date(data.date), 'Asia/Ho_Chi_Minh', 'dd');
 
   // Tìm hoặc thêm hàng cho giáo viên
   const teacherRow = findOrCreateTeacherRow(monthTab, data.teacher_name);
   // Tìm cột cho ngày (mỗi ngày có 2 cột: IN và OUT)
-  const dayCol = findOrCreateDayColumn(monthTab, parseInt(today));
+  const dayCol = findOrCreateDayColumn(monthTab, parseInt(today, 10));
 
   // Ghi check-in time
   monthTab.getRange(teacherRow, dayCol).setValue(data.check_in_time);
 
-  // Ghi trễ vào cột ghi chú nếu có
-  if (data.late_minutes > 0) {
-    const noteCol = findNoteColumn(monthTab, parseInt(today), 'in');
-    if (noteCol) {
-      monthTab.getRange(teacherRow, noteCol).setValue('Trễ ' + data.late_minutes + 'p');
-    }
-  }
-
-  return { success: true, message: 'Check-in synced' };
+  return { success: true, message: 'Check-in synced', row: teacherRow, col: dayCol };
 }
 
 /**
  * Xử lý check-out: cập nhật sheet tháng
  */
-function handleCheckout(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const monthTab = getOrCreateMonthSheet(ss, data.date);
+function handleCheckout(data, ss) {
+  const targetSs = ss || getSpreadsheet();
+  const monthTab = getOrCreateMonthSheet(targetSs, data.date);
   const today = Utilities.formatDate(new Date(data.date), 'Asia/Ho_Chi_Minh', 'dd');
 
   const teacherRow = findOrCreateTeacherRow(monthTab, data.teacher_name);
-  const dayCol = findOrCreateDayColumn(monthTab, parseInt(today));
+  const dayCol = findOrCreateDayColumn(monthTab, parseInt(today, 10));
 
   // Ghi check-out time (cột OUT = dayCol + 1)
   monthTab.getRange(teacherRow, dayCol + 1).setValue(data.check_out_time);
 
-  // Ghi tăng ca
-  if (data.overtime_minutes > 0) {
-    const noteCol = findNoteColumn(monthTab, parseInt(today), 'out');
-    if (noteCol) {
-      monthTab.getRange(teacherRow, noteCol).setValue(
-        'TC ' + data.overtime_minutes + 'p (' + data.overtime_amount + 'đ)'
-      );
+  return { success: true, message: 'Check-out synced', row: teacherRow, col: dayCol + 1 };
+}
+
+/**
+ * Đồng bộ toàn bộ record của 1 ngày
+ */
+function handleSyncDay(data, ss) {
+  const targetSs = ss || getSpreadsheet();
+  const records = data.records || [];
+  let count = 0;
+
+  for (let i = 0; i < records.length; i++) {
+    const rec = records[i];
+    if (rec.check_in_time) {
+      handleCheckin(rec, targetSs);
     }
+    if (rec.check_out_time) {
+      handleCheckout(rec, targetSs);
+    }
+    count++;
   }
 
-  return { success: true, message: 'Check-out synced' };
+  return { success: true, message: 'Synced day successfully', count: count };
+}
+
+/**
+ * Đồng bộ danh sách records cả tháng
+ */
+function handleSyncMonth(data, ss) {
+  return handleSyncDay(data, ss);
 }
 
 /**
@@ -134,12 +156,12 @@ function getOrCreateMonthSheet(ss, dateStr) {
   const date = new Date(dateStr);
   const month = Utilities.formatDate(date, 'Asia/Ho_Chi_Minh', 'MM');
   const year = Utilities.formatDate(date, 'Asia/Ho_Chi_Minh', 'yyyy');
-  const sheetName = 'Th\u00e1ng ' + month + '/' + year;
+  const sheetName = 'Tháng ' + month + '/' + year;
 
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
-    setupMonthSheet(sheet, parseInt(month), parseInt(year));
+    setupMonthSheet(sheet, parseInt(month, 10), parseInt(year, 10));
   }
   return sheet;
 }
@@ -148,11 +170,8 @@ function getOrCreateMonthSheet(ss, dateStr) {
  * Cấu hình sheet tháng mới
  */
 function setupMonthSheet(sheet, month, year) {
-  // Header row 1: Ngày 1, 2, 3, ...
-  // Header row 2: IN, OUT, IN, OUT, ...
   const daysInMonth = new Date(year, month, 0).getDate();
 
-  // Cột A: STT, Cột B: Giáo viên, Cột C trở đi: Ngày
   sheet.getRange(1, 1).setValue('STT');
   sheet.getRange(1, 2).setValue('Giáo viên');
 
@@ -163,14 +182,12 @@ function setupMonthSheet(sheet, month, year) {
     sheet.getRange(2, col + 1).setValue('OUT');
   }
 
-  // Cột tổng hợp cuối tháng
   const summaryCol = 3 + daysInMonth * 2;
   sheet.getRange(1, summaryCol).setValue('Tổng ngày làm');
   sheet.getRange(1, summaryCol + 1).setValue('Tổng trễ (phút)');
   sheet.getRange(1, summaryCol + 2).setValue('Tổng TC (phút)');
   sheet.getRange(1, summaryCol + 3).setValue('Tiền TC');
 
-  // Format header
   sheet.getRange(1, 1, 2, summaryCol + 3).setFontWeight('bold');
   sheet.setFrozenRows(2);
   sheet.setFrozenColumns(2);
@@ -181,15 +198,15 @@ function setupMonthSheet(sheet, month, year) {
  */
 function findOrCreateTeacherRow(sheet, teacherName) {
   const lastRow = Math.max(sheet.getLastRow(), 2);
-  const names = sheet.getRange(3, 2, Math.max(lastRow - 2, 1), 1).getValues();
-
-  for (let i = 0; i < names.length; i++) {
-    if (names[i][0] === teacherName) {
-      return i + 3;
+  if (lastRow > 2) {
+    const names = sheet.getRange(3, 2, lastRow - 2, 1).getValues();
+    for (let i = 0; i < names.length; i++) {
+      if (names[i][0] === teacherName) {
+        return i + 3;
+      }
     }
   }
 
-  // Thêm giáo viên mới
   const newRow = lastRow + 1;
   sheet.getRange(newRow, 1).setValue(newRow - 2); // STT
   sheet.getRange(newRow, 2).setValue(teacherName);
@@ -204,20 +221,12 @@ function findOrCreateDayColumn(sheet, day) {
 }
 
 /**
- * Tìm cột ghi chú
- */
-function findNoteColumn(sheet, day, type) {
-  // Simplified: notes are stored alongside IN/OUT
-  return null; // TODO: implement if needed
-}
-
-/**
  * Lấy dữ liệu tháng từ sheet
  */
-function getMonthData(month, year) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheetName = 'Th\u00e1ng ' + month + '/' + year;
-  const sheet = ss.getSheetByName(sheetName);
+function getMonthData(month, year, ss) {
+  const targetSs = ss || getSpreadsheet();
+  const sheetName = 'Tháng ' + month + '/' + year;
+  const sheet = targetSs.getSheetByName(sheetName);
 
   if (!sheet) {
     return { success: false, message: 'Sheet not found: ' + sheetName };
@@ -230,15 +239,17 @@ function getMonthData(month, year) {
 /**
  * Lấy danh sách giáo viên từ sheet Master
  */
-function getTeachersFromSheet() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName('Master');
+function getTeachersFromSheet(ss) {
+  const targetSs = ss || getSpreadsheet();
+  const sheet = targetSs.getSheetByName('Master') || targetSs.getSheets()[0];
 
   if (!sheet) {
-    return { success: false, message: 'Master sheet not found' };
+    return { success: false, message: 'No sheet found' };
   }
 
   const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return { success: true, teachers: [] };
+
   const headers = data[0];
   const teachers = data.slice(1).map(row => {
     const obj = {};
