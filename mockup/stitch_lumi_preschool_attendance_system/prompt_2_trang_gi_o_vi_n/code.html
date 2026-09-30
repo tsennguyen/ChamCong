@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lumi Preschool - Trang Giáo Viên</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    body {
+      background-color: #f0f7f0;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Sticky Top Header */
+    .top-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #ffffff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid rgba(46, 139, 87, 0.12);
+    }
+    .header-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: block;
+      box-shadow: 0 2px 6px rgba(46, 139, 87, 0.2);
+    }
+    .brand-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2e8b57;
+      letter-spacing: -0.3px;
+    }
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .greeting {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #374151;
+    }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #e5e7eb;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      color: #4b5563;
+      transition: all 0.2s ease;
+    }
+    .logout-btn:hover {
+      color: #ef4444;
+      border-color: #fee2e2;
+      background-color: #fef2f2;
+    }
+
+    /* Main Container */
+    .main-content {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+
+    /* Cards generic */
+    .card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      border: 1px solid #eef2f0;
+    }
+
+    /* Section 1: Check-in/out */
+    .attendance-card {
+      border-left: 5px solid #2e8b57;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2e8b57;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      letter-spacing: -0.2px;
+    }
+    .form-row {
+      margin-bottom: 14px;
+    }
+    .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 6px;
+    }
+    .select-shift {
+      width: 100%;
+      height: 44px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-size: 15px;
+      color: #111827;
+      background-color: #f9fafb;
+      outline: none;
+    }
+    .wifi-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .buttons-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .btn-action {
+      height: 48px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: filter 0.2s ease, transform 0.1s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .btn-action:hover {
+      filter: brightness(0.92);
+    }
+    .btn-action:active {
+      transform: scale(0.99);
+    }
+    .btn-checkin {
+      background-color: #2e8b57;
+    }
+    .btn-checkout {
+      background-color: #dc2626;
+    }
+    .result-alert {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 14px;
+      color: #166534;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .result-time-badge {
+      background: #2e8b57;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* Tables */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 12px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+    table {
+      width: 100%;
+      min-width: 580px;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      text-align: left;
+    }
+    th {
+      background-color: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      padding: 10px 12px;
+      border-bottom: 1.5px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      white-space: nowrap;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background-color: #f9fbfa;
+    }
+    .tag-late {
+      color: #dc2626;
+      font-weight: 700;
+      background: #fee2e2;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    .tag-overtime {
+      color: #2563eb;
+      font-weight: 700;
+      background: #dbeafe;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    .current-user-row {
+      background-color: #f0fdf4 !important;
+      font-weight: 600;
+    }
+
+    /* Section 4: Collapsible Guide */
+    details {
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      border: 1px solid #eef2f0;
+      overflow: hidden;
+    }
+    summary {
+      padding: 16px 20px;
+      font-weight: 700;
+      font-size: 15px;
+      color: #2e8b57;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      list-style: none;
+    }
+    summary::-webkit-details-marker {
+      display: none;
+    }
+    summary::after {
+      content: '▼';
+      font-size: 12px;
+      color: #6b7280;
+      transition: transform 0.2s;
+    }
+    details[open] summary::after {
+      transform: rotate(180deg);
+    }
+    .guide-body {
+      padding: 0 20px 20px 20px;
+      border-top: 1px dashed #e5e7eb;
+      margin-top: 4px;
+      padding-top: 14px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #4b5563;
+    }
+    .step-badge {
+      width: 24px;
+      height: 24px;
+      background: #e8f5e9;
+      color: #2e8b57;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 24px 16px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    @media (max-width: 480px) {
+      .header-inner {
+        padding: 10px 14px;
+      }
+      .brand-name {
+        font-size: 16px;
+      }
+      .greeting {
+        font-size: 13px;
+      }
+      .buttons-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="top-header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <svg class="brand-logo" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="48" fill="#2e8b57" stroke="#ffffff" stroke-width="2"/>
+          <path d="M50 34 C44 26, 26 27, 22 36 L22 62 C26 54, 44 53, 50 60 C56 53, 74 54, 78 62 L78 36 C74 27, 56 26, 50 34 Z" fill="#f5a623"/>
+          <path d="M50 34 L50 60" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+          <text x="50" y="78" font-family="sans-serif" font-weight="900" font-size="16" fill="#ffffff" text-anchor="middle" letter-spacing="2">LM</text>
+        </svg>
+        <span class="brand-name">Lumi Preschool</span>
+      </div>
+      <div class="header-user">
+        <span class="greeting">Chào Cô Hạnh!</span>
+        <button class="logout-btn" title="Đăng xuất">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          <span>Thoát</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Section 1: Check-in/out Card -->
+    <section class="card attendance-card">
+      <h2 class="card-title">📋 ĐIỂM DANH</h2>
+      
+      <div class="form-row">
+        <label class="field-label" for="shiftSelect">Chọn ca làm việc</label>
+        <select class="select-shift" id="shiftSelect">
+          <option value="ca1" selected>Ca 7:00 - 17:00 (Mầm non tiêu chuẩn)</option>
+          <option value="ca2">Ca 7:30 - 17:30 (Mẫu giáo nhỡ)</option>
+          <option value="ca3">Ca 8:00 - 18:00 (Nhà trẻ đặc biệt)</option>
+        </select>
+      </div>
+
+      <div class="wifi-status">
+        <span>✅</span>
+        <span>Đã kết nối WiFi trường học (<strong>Lumi_Teacher_5G</strong>)</span>
+      </div>
+
+      <div class="buttons-grid">
+        <button class="btn-action btn-checkin">
+          <span>🟢</span> CHECK-IN
+        </button>
+        <button class="btn-action btn-checkout">
+          <span>🔴</span> CHECK-OUT
+        </button>
+      </div>
+
+      <div class="result-alert">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 18px;">✅</span>
+          <span>Chào Cô Hạnh! Điểm danh ca 7:00-17:00</span>
+        </div>
+        <div>
+          Giờ vào: <span class="result-time-badge">07:01</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Today's Regular Stats -->
+    <section class="card">
+      <h2 class="card-title" style="color: #1f2937;">📊 THỐNG KÊ CA CHÍNH HÔM NAY (30/09/2026)</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 36px;">#</th>
+              <th>Giáo viên</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Trễ (phút)</th>
+              <th>Tăng ca (phút)</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="current-user-row">
+              <td>1</td>
+              <td><strong>Cô Hạnh (Bạn)</strong></td>
+              <td>06:59</td>
+              <td>17:30</td>
+              <td>0</td>
+              <td><span class="tag-overtime">+30</span></td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Cô Mai</td>
+              <td>07:05</td>
+              <td>—</td>
+              <td><span class="tag-late">5</span></td>
+              <td>—</td>
+              <td><span class="tag-late">Trễ 5 phút</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Thầy Tuấn</td>
+              <td>07:00</td>
+              <td>18:00</td>
+              <td>0</td>
+              <td><span class="tag-overtime">+60</span></td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Cô Linh</td>
+              <td>07:01</td>
+              <td>17:00</td>
+              <td>0</td>
+              <td>0</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Cô Trang</td>
+              <td>07:15</td>
+              <td>—</td>
+              <td><span class="tag-late">15</span></td>
+              <td>—</td>
+              <td><span class="tag-late">Trễ 15 phút</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 3: Today's Extra Stats -->
+    <section class="card">
+      <h2 class="card-title" style="color: #1f2937;">📊 THỐNG KÊ CA NGOÀI GIỜ HÔM NAY (30/09/2026)</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 36px;">#</th>
+              <th>Giáo viên</th>
+              <th>Ca ngoài giờ</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Cô Hương</td>
+              <td>Trông muộn (17:00 - 18:30)</td>
+              <td>17:00</td>
+              <td>18:35</td>
+              <td><span class="tag-overtime">Hoàn thành ca</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Thầy Tuấn</td>
+              <td>CLB Vẽ & Cảm thụ mỹ thuật</td>
+              <td>17:15</td>
+              <td>18:45</td>
+              <td><span class="tag-overtime">CLB năng khiếu</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 4: Collapsible Guide -->
+    <details open>
+      <summary>📖 HƯỚNG DẪN SỬ DỤNG</summary>
+      <div class="guide-body">
+        <div class="step-item">
+          <span class="step-badge">1</span>
+          <div>
+            <strong>Kết nối WiFi trường:</strong> Đảm bảo thiết bị đã kết nối vào mạng WiFi nội bộ của cơ sở Lumi Preschool để xác thực vị trí.
+          </div>
+        </div>
+        <div class="step-item">
+          <span class="step-badge">2</span>
+          <div>
+            <strong>Chọn ca & Check-in:</strong> Lựa chọn ca làm việc được phân công, sau đó nhấn nút <strong>🟢 CHECK-IN</strong> khi vừa đến lớp.
+          </div>
+        </div>
+        <div class="step-item">
+          <span class="step-badge">3</span>
+          <div>
+            <strong>Cuối ca & Check-out:</strong> Sau khi trả toàn bộ học sinh và hoàn tất bàn giao sổ trực, bấm <strong>🔴 CHECK-OUT</strong> để hệ thống ghi nhận.
+          </div>
+        </div>
+      </div>
+    </details>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2026 Lumi Preschool</p>
+  </footer>
+</body>
+</html>

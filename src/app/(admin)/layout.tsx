@@ -1,111 +1,123 @@
 'use client';
+
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from 'next-auth/react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
-import {
-  LayoutDashboard,
-  ClipboardList,
-  Users,
-  Clock,
-  Moon,
-  BarChart,
-  Smartphone,
-  RefreshCw,
-  Settings,
-  Menu,
-  X,
-  LogOut
-} from 'lucide-react';
+import Image from 'next/image';
+
+const navItems = [
+  { name: 'Tổng quan', href: '/admin', icon: '📊' },
+  { name: 'Chấm công', href: '/admin/attendance', icon: '📋' },
+  { name: 'Giáo viên', href: '/admin/teachers', icon: '👩‍🏫' },
+  { name: 'Ca làm việc', href: '/admin/shifts', icon: '⏰' },
+  { name: 'Ca ngoài giờ', href: '/admin/overtime', icon: '🌙' },
+  { name: 'Báo cáo', href: '/admin/reports', icon: '📈' },
+  { name: 'Thiết bị', href: '/admin/devices', icon: '📱' },
+  { name: 'Google Sheets', href: '/admin/sheets', icon: '🔄' },
+  { name: 'Cài đặt', href: '/admin/settings', icon: '⚙️' },
+];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navItems = [
-    { name: 'Tổng quan', href: '/admin', icon: LayoutDashboard },
-    { name: 'Chấm công', href: '/admin/attendance', icon: ClipboardList },
-    { name: 'Giáo viên', href: '/admin/teachers', icon: Users },
-    { name: 'Ca làm việc', href: '/admin/shifts', icon: Clock },
-    { name: 'Ca ngoài giờ', href: '/admin/extra', icon: Moon },
-    { name: 'Báo cáo', href: '/admin/reports', icon: BarChart },
-    { name: 'Thiết bị', href: '/admin/devices', icon: Smartphone },
-    { name: 'Google Sheets', href: '/admin/sync', icon: RefreshCw },
-    { name: 'Cài đặt', href: '/admin/settings', icon: Settings },
-  ];
+  const currentPage = navItems.find(i => i.href === pathname) || navItems[0];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
-      {/* Mobile Header */}
-      <div className="md:hidden bg-[#1e6b3e] text-white p-4 flex justify-between items-center">
-        <div className="font-bold text-xl flex items-center">
-          <span>Lumi Admin</span>
-        </div>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
+    <div className="flex min-h-screen bg-[#f5f5f5] text-gray-800">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/40 z-[99] md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
       {/* Sidebar */}
-      <div className={`bg-[#1e6b3e] text-white w-64 flex-shrink-0 flex-col ${sidebarOpen ? 'flex' : 'hidden'} md:flex absolute md:relative z-10 h-full min-h-screen`}>
-        <div className="p-6 hidden md:block">
-          <h1 className="text-2xl font-bold">Lumi Preschool</h1>
-          <p className="text-sm opacity-80 mt-1">Admin Dashboard</p>
+      <aside className={`
+        w-[260px] bg-[#1e6b3e] text-white flex flex-col shrink-0 z-[100]
+        fixed md:sticky top-0 h-screen overflow-y-auto shadow-[2px_0_10px_rgba(0,0,0,0.1)]
+        transition-transform duration-300
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        {/* Brand */}
+        <div className="px-[18px] py-5 flex items-center gap-3 border-b border-white/[0.12]">
+          <Image src="/logolumi.jpg" alt="Logo" width={40} height={40} className="rounded-full shrink-0" />
+          <div className="flex flex-col">
+            <span className="text-base font-bold text-white leading-tight">Lumi Preschool</span>
+            <span className="inline-block bg-[#f5a623] text-[#1e6b3e] text-[11px] font-extrabold px-1.5 py-0.5 rounded mt-1 w-fit uppercase tracking-wider">Admin Portal</span>
+          </div>
         </div>
-        
-        <nav className="flex-1 px-4 pb-4 overflow-y-auto mt-4 md:mt-0">
-          <ul className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${isActive ? 'bg-[#2e8b57] text-white' : 'hover:bg-[#2e8b57]/50 text-white/90'}`}
-                  >
-                    <Icon size={20} />
-                    <span>{item.name}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-        
-        <div className="p-4 border-t border-white/10 mt-auto">
-          <div className="mb-4">
-            <p className="text-sm font-medium">Xin chào,</p>
-            <p className="font-bold truncate">{user?.name || 'Admin'}</p>
+
+        {/* Nav */}
+        <ul className="list-none px-2.5 py-4 flex flex-col gap-1 flex-1">
+          {navItems.map(item => {
+            const active = pathname === item.href;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-3.5 py-[11px] rounded-lg text-[14.5px] font-medium transition-all relative no-underline
+                    ${active
+                      ? 'bg-white/[0.15] text-white font-semibold'
+                      : 'text-white/[0.82] hover:bg-white/[0.1] hover:text-white'}
+                  `}
+                >
+                  {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#f5a623] rounded-r" />}
+                  <span className="text-lg w-[22px] text-center">{item.icon}</span>
+                  <span>{item.name}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* Footer */}
+        <div className="px-[18px] py-4 border-t border-white/[0.12] bg-black/10 flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-[13.5px] font-semibold text-white">Xin chào, {user?.name || 'Admin'}</span>
+            <span className="text-[11.5px] text-white/65">Quản trị hệ thống</span>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
-            className="flex items-center space-x-2 text-white/80 hover:text-white w-full p-2 rounded hover:bg-white/10 transition-colors"
+            className="bg-white/[0.12] border-none text-white w-8 h-8 rounded-md cursor-pointer flex items-center justify-center hover:bg-red-500 transition-colors"
+            title="Đăng xuất"
           >
-            <LogOut size={18} />
-            <span>Đăng xuất</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
         </div>
-      </div>
+      </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="bg-white shadow-sm h-16 hidden md:flex items-center justify-between px-8 flex-shrink-0">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {navItems.find(i => i.href === pathname)?.name || 'Dashboard'}
-          </h2>
-          <div className="flex items-center">
-            <span className="text-gray-600 mr-4">Hi, {user?.gender === 'male' ? 'Thầy' : 'Cô'} {user?.name}</span>
+      {/* Content area */}
+      <main className="flex-1 flex flex-col min-w-0">
+        {/* Top bar */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-7 sticky top-0 z-40">
+          <div className="flex items-center gap-3.5">
+            <button
+              className="md:hidden text-gray-700 text-2xl bg-transparent border-none cursor-pointer"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Mở menu"
+            >
+              ☰
+            </button>
+            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <span>{currentPage.icon}</span> {currentPage.name}
+            </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-[14.5px] font-semibold text-[#2e8b57] bg-[#e8f5e9] px-3.5 py-1.5 rounded-full hidden sm:inline">
+              Hi, {user?.gender === 'male' ? 'Thầy' : 'Cô'} {user?.name || 'Admin'}
+            </span>
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-4 md:p-8">
+
+        {/* Page content */}
+        <div className="p-4 md:p-7 flex flex-col gap-6 flex-1">
           {children}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

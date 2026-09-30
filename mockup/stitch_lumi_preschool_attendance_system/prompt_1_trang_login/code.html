@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lumi Preschool - Đăng nhập</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #f0f7f0 0%, #ffffff 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px 16px;
+      color: #333333;
+    }
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .login-card {
+      width: 100%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(46, 139, 87, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      padding: 36px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1px solid rgba(46, 139, 87, 0.08);
+    }
+    .logo-wrapper {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(46, 139, 87, 0.2);
+    }
+    .logo-wrapper img, .logo-wrapper svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2e8b57;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .form-group {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 20px;
+      height: 20px;
+      color: #9ca3af;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-input {
+      width: 100%;
+      height: 48px;
+      padding: 12px 14px 12px 42px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #1f2937;
+      outline: none;
+      transition: all 0.2s ease;
+      background: #fafafa;
+    }
+    .form-input:focus {
+      background: #ffffff;
+      border-color: #2e8b57;
+      box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.15);
+    }
+    .password-wrapper .form-input {
+      padding-right: 42px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 14px;
+      cursor: pointer;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      padding: 4px;
+    }
+    .toggle-password:hover {
+      color: #4b5563;
+    }
+    .error-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #dc2626;
+      background: #fef2f2;
+      border: 1px solid #fee2e2;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      margin-bottom: 18px;
+      width: 100%;
+    }
+    .error-area.hidden {
+      display: none;
+    }
+    .submit-btn {
+      width: 100%;
+      height: 48px;
+      background-color: #2e8b57;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      box-shadow: 0 4px 12px rgba(46, 139, 87, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .submit-btn:hover {
+      background-color: #246e45;
+    }
+    .submit-btn:active {
+      transform: translateY(1px);
+    }
+    .footer-text {
+      margin-top: 24px;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+    }
+    .school-info-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #e8f5e9;
+      color: #2e8b57;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo-wrapper">
+        <svg viewBox="0 0 100 100" width="80" height="80">
+          <circle cx="50" cy="50" r="48" fill="#2e8b57" stroke="#ffffff" stroke-width="2"/>
+          <path d="M50 34 C44 26, 26 27, 22 36 L22 62 C26 54, 44 53, 50 60 C56 53, 74 54, 78 62 L78 36 C74 27, 56 26, 50 34 Z" fill="#f5a623"/>
+          <path d="M50 34 L50 60" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+          <text x="50" y="78" font-family="sans-serif" font-weight="900" font-size="16" fill="#ffffff" text-anchor="middle" letter-spacing="2">LM</text>
+          <circle cx="50" cy="23" r="4" fill="#fdd835"/>
+        </svg>
+      </div>
+
+      <span class="school-info-tag">Mầm Non Sáng Tạo</span>
+      <h1 class="title">Lumi Preschool</h1>
+      <p class="subtitle">Hệ thống chấm công giáo viên</p>
+
+      <!-- Error message area (hidden by default as requested) -->
+      <div class="error-area hidden" id="errorBox">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>Email hoặc mật khẩu không chính xác!</span>
+      </div>
+
+      <form style="width: 100%;" onsubmit="return false;">
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+              </svg>
+            </span>
+            <input type="email" id="email" class="form-input" placeholder="teacher@lumi.edu.vn" value="teacher@lumi.edu.vn">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Mật khẩu</label>
+          <div class="input-wrapper password-wrapper">
+            <span class="input-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
+            <input type="password" id="password" class="form-input" placeholder="Nhập mật khẩu" value="••••••••">
+            <button type="button" class="toggle-password" title="Hiện/ẩn mật khẩu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          Đăng nhập
+        </button>
+      </form>
+    </div>
+
+    <p class="footer-text">© 2026 Lumi Preschool</p>
+  </div>
+</body>
+</html>
