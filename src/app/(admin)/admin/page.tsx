@@ -1,125 +1,153 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Users, UserCheck, Clock, DollarSign } from 'lucide-react';
-import { format } from 'date-fns';
-import { vi } from 'date-fns/locale';
+
+import { useState, useEffect, useCallback } from 'react';
+import { getTodayString } from '@/lib/utils';
+
+interface StatCard {
+  icon: string;
+  label: string;
+  value: string | number;
+  footnote: string;
+  color: 'green' | 'red' | 'blue';
+}
+
+interface AttendanceRow {
+  id: string;
+  user_id: string;
+  attendance_date: string;
+  check_in_time: string | null;
+  check_out_time: string | null;
+  late_minutes: number;
+  overtime_minutes: number;
+  overtime_amount: number;
+  status: string;
+  shift_type: string;
+  user?: { id: string; full_name: string; gender: string };
+  shift?: { id: string; name: string; type: string; start_time: string; end_time: string };
+}
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalTeachers: 0,
-    checkedIn: 0,
-    late: 0,
-    overtime: 0
-  });
+  const [records, setRecords] = useState<AttendanceRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [attendance, setAttendance] = useState([]);
+  const today = getTodayString();
+  const todayFormatted = new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  const fetchData = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/attendance?date=${today}`);
+      const data = await res.json();
+      setRecords(Array.isArray(data) ? data : []);
+    } catch { /* ignore */ }
+    setLoading(false);
+  }, [today]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Mock API calls for now
-        const [teachersRes, attendanceRes] = await Promise.all([
-          fetch('/api/teachers').then(res => res.json()),
-          fetch('/api/attendance/today').then(res => res.json())
-        ]);
-        
-        const lateCount = (attendanceRes.data || []).filter((a: any) => a.late_minutes > 0).length;
-        const overtimeSum = (attendanceRes.data || []).reduce((sum: number, a: any) => sum + (a.overtime_minutes || 0), 0);
-        
-        setStats({
-          totalTeachers: teachersRes.data?.length || 0,
-          checkedIn: attendanceRes.data?.length || 0,
-          late: lateCount,
-          overtime: overtimeSum
-        });
-        setAttendance(attendanceRes.data || []);
-      } catch (error) {
-        console.error('Failed to fetch dashboard data', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, []);
+    const iv = setInterval(fetchData, 30000);
+    return () => clearInterval(iv);
+  }, [fetchData]);
 
-  const todayStr = format(new Date(), 'EEEE, dd/MM/yyyy', { locale: vi });
+  const totalTeachers = records.length;
+  const checkedOut = records.filter(r => r.status === 'checked_out').length;
+  const lateCount = records.filter(r => r.late_minutes > 0).length;
+  const totalOTMinutes = records.reduce((sum, r) => sum + (r.overtime_minutes || 0), 0);
+
+  const stats: StatCard[] = [
+    { icon: '👩‍🏫', label: 'Đã chấm công', value: `${totalTeachers}`, footnote: 'Giáo viên check-in hôm nay', color: 'green' },
+    { icon: '✅', label: 'Đã check-out', value: `${checkedOut}/${totalTeachers}`, footnote: `Tỷ lệ ${totalTeachers > 0 ? Math.round(checkedOut / totalTeachers * 100) : 0}%`, color: 'green' },
+    { icon: '⏰', label: 'Đi trễ hôm nay', value: lateCount, footnote: 'Ghi nhận trễ ca chính', color: 'red' },
+    { icon: '💰', label: 'Tăng ca hôm nay', value: `${totalOTMinutes} phút`, footnote: `≈ ${new Intl.NumberFormat('vi-VN').format(records.reduce((s, r) => s + (r.overtime_amount || 0), 0))}đ`, color: 'blue' },
+  ];
+
+  const colorMap = { green: 'text-[#2e8b57]', red: 'text-red-600', blue: 'text-blue-600' };
+  const fmtTime = (t: string | null) => t ? new Date(t).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '—';
+  const getTitle = (g?: string) => g === 'male' ? 'Thầy' : 'Cô';
+
+  const statusBadge = (s: string) => {
+    switch (s) {
+      case 'checked_out': return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold bg-green-100 text-green-700">● Đã check-out</span>;
+      case 'checked_in': return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold bg-blue-100 text-blue-700">● Đã check-in</span>;
+      case 'needs_review': return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold bg-yellow-100 text-yellow-700">⚠️ Cần xác nhận</span>;
+      default: return <span className="text-gray-400">{s}</span>;
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Tổng quan</h1>
-        <p className="text-gray-500 capitalize">{todayStr}</p>
-      </div>
+    <>
+      {/* Stats Cards */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {stats.map((s, i) => (
+          <div key={i} className="bg-white rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200 flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-gray-600 text-sm font-semibold">
+              <span>{s.icon}</span><span>{s.label}</span>
+            </div>
+            <div className={`text-3xl font-extrabold leading-tight mt-1 ${colorMap[s.color]}`}>{s.value}</div>
+            <div className="text-xs text-gray-400">{s.footnote}</div>
+          </div>
+        ))}
+      </section>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="bg-white rounded-xl p-6 shadow-sm animate-pulse h-32"></div>
-          ))}
+      {/* Attendance Table */}
+      <section className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 flex items-center justify-between border-b border-slate-100">
+          <h2 className="text-[17px] font-bold text-gray-900">Chấm công ngày {todayFormatted}</h2>
+          <span className="bg-gray-100 text-sm px-2.5 py-1 rounded-md text-gray-600 font-medium hidden sm:inline">
+            Cập nhật lúc: {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+          </span>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Tổng giáo viên" value={stats.totalTeachers} icon={Users} color="bg-blue-50 text-blue-600" />
-          <StatCard title="Đã chấm công" value={stats.checkedIn} icon={UserCheck} color="bg-green-50 text-[#2e8b57]" />
-          <StatCard title="Đi trễ hôm nay" value={stats.late} icon={Clock} color="bg-orange-50 text-orange-600" />
-          <StatCard title="Tăng ca (phút)" value={stats.overtime} icon={DollarSign} color="bg-purple-50 text-purple-600" />
-        </div>
-      )}
 
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800">Hoạt động chấm công hôm nay</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 text-gray-600 text-sm">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full border-collapse text-sm text-left">
+            <thead>
               <tr>
-                <th className="px-6 py-4 font-medium">Giáo viên</th>
-                <th className="px-6 py-4 font-medium">Giờ vào</th>
-                <th className="px-6 py-4 font-medium">Giờ ra</th>
-                <th className="px-6 py-4 font-medium">Trạng thái</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200 w-10">#</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Giáo viên</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Ca</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Check-in</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Check-out</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Trễ</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Tăng ca</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Tiền TC</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Trạng thái</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
-              {attendance.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">Chưa có dữ liệu chấm công hôm nay</td>
-                </tr>
-              ) : (
-                attendance.map((record: any) => (
-                  <tr key={record.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">{record.user?.full_name}</td>
-                    <td className="px-6 py-4">{record.check_in_time ? format(new Date(record.check_in_time), 'HH:mm') : '-'}</td>
-                    <td className="px-6 py-4">{record.check_out_time ? format(new Date(record.check_out_time), 'HH:mm') : '-'}</td>
-                    <td className="px-6 py-4">
-                      {record.status === 'present' ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Đúng giờ</span>
-                      ) : (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">Đi trễ</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+            <tbody>
+              {loading && (
+                <tr><td colSpan={9} className="text-center py-10 text-gray-400">Đang tải...</td></tr>
               )}
+              {!loading && records.length === 0 && (
+                <tr><td colSpan={9} className="text-center py-10 text-gray-400">Chưa có dữ liệu chấm công hôm nay</td></tr>
+              )}
+              {records.map((r, i) => {
+                const isWarning = r.status === 'needs_review' || (!r.check_in_time && !r.check_out_time);
+                return (
+                  <tr key={r.id} className={`hover:bg-slate-50 ${isWarning ? 'bg-amber-50' : ''}`}>
+                    <td className="px-4 py-3.5 border-b border-slate-100">{i + 1}</td>
+                    <td className="px-4 py-3.5 border-b border-slate-100 font-semibold whitespace-nowrap">
+                      {getTitle(r.user?.gender)} {r.user?.full_name}
+                    </td>
+                    <td className="px-4 py-3.5 border-b border-slate-100 whitespace-nowrap">{r.shift?.name || '—'}</td>
+                    <td className="px-4 py-3.5 border-b border-slate-100">{fmtTime(r.check_in_time)}</td>
+                    <td className="px-4 py-3.5 border-b border-slate-100">{fmtTime(r.check_out_time)}</td>
+                    <td className="px-4 py-3.5 border-b border-slate-100">
+                      {r.late_minutes > 0
+                        ? <span className="text-red-600 font-semibold">{r.late_minutes} phút</span>
+                        : '0'}
+                    </td>
+                    <td className="px-4 py-3.5 border-b border-slate-100">
+                      {r.overtime_minutes > 0 ? `${r.overtime_minutes} phút` : '—'}
+                    </td>
+                    <td className="px-4 py-3.5 border-b border-slate-100">
+                      {r.overtime_amount > 0 ? `${new Intl.NumberFormat('vi-VN').format(r.overtime_amount)}đ` : '—'}
+                    </td>
+                    <td className="px-4 py-3.5 border-b border-slate-100">{statusBadge(r.status)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ title, value, icon: Icon, color }: { title: string, value: number | string, icon: any, color: string }) {
-  return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
-      <div className={`p-4 rounded-full ${color}`}>
-        <Icon size={24} />
-      </div>
-      <div>
-        <p className="text-gray-500 text-sm">{title}</p>
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }

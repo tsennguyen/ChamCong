@@ -28,7 +28,19 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Email hoặc mật khẩu không chính xác!');
       } else {
-        router.push('/teacher');
+        // Fetch session to determine redirect
+        const sessionRes = await fetch('/api/auth/session');
+        const session = await sessionRes.json();
+        const role = session?.user?.role;
+        const mustChange = session?.user?.must_change_password;
+
+        if (mustChange) {
+          router.push('/change-password');
+        } else if (role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/teacher');
+        }
         router.refresh();
       }
     } catch {
