@@ -64,17 +64,17 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl">
-      <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200 p-6 md:p-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#eef2f0] p-6 md:p-8">
+        <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-6 tracking-tight">
           Cài đặt hệ thống
         </h2>
 
         {message && (
           <div
-            className={`p-4 rounded-lg mb-6 text-sm ${
+            className={`p-4 rounded-xl mb-6 text-xs sm:text-sm font-medium ${
               message.type === 'success'
-                ? 'bg-green-50 text-green-800 border border-green-200'
-                : 'bg-red-50 text-red-800 border border-red-200'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                : 'bg-rose-50 text-rose-800 border border-rose-200'
             }`}
           >
             <span>{message.text}</span>
@@ -83,24 +83,24 @@ export default function SettingsPage() {
 
         <form onSubmit={handleSave} className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
               Tên WiFi trường học (SSID)
             </label>
             <input
               type="text"
               value={form.wifi_ssid}
               onChange={(e) => setForm({ ...form, wifi_ssid: e.target.value })}
-              className="w-full h-11 px-3.5 border-[1.5px] border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#2e8b57] focus:shadow-[0_0_0_3px_rgba(46,139,87,0.15)]"
+              className="w-full h-11 px-3.5 border border-[#d8e3dc] rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-[#2e8b57] bg-[#f8faf9] focus:bg-white font-medium"
               placeholder="VD: Lumi-WiFi"
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-[11px] text-gray-400 mt-1">
               Gợi ý nhắc giáo viên kết nối đúng WiFi trường học khi mở trang điểm danh.
             </p>
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-semibold text-gray-700">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs sm:text-sm font-bold text-gray-700">
                 Dải IP trường học (Chống gian lận vị trí)
               </label>
               {currentIp && (
@@ -114,7 +114,7 @@ export default function SettingsPage() {
                       setForm({ ...form, school_ip_range: `${existing}, ${currentIp}` });
                     }
                   }}
-                  className="text-xs text-[#2e8b57] hover:underline font-medium bg-[#e8f5e9] px-2 py-0.5 rounded cursor-pointer border-none"
+                  className="text-[11px] text-[#1e6b3e] hover:underline font-bold bg-[#eef7ee] border border-[#cbe4cb] px-2.5 py-0.5 rounded-lg cursor-pointer"
                 >
                   + Lấy IP hiện tại ({currentIp})
                 </button>
@@ -124,49 +124,49 @@ export default function SettingsPage() {
               type="text"
               value={form.school_ip_range}
               onChange={(e) => setForm({ ...form, school_ip_range: e.target.value })}
-              className="w-full h-11 px-3.5 border-[1.5px] border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#2e8b57] focus:shadow-[0_0_0_3px_rgba(46,139,87,0.15)]"
+              className="w-full h-11 px-3.5 border border-[#d8e3dc] rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-[#2e8b57] bg-[#f8faf9] focus:bg-white font-medium font-mono"
               placeholder="VD: * (cho phép tất cả) hoặc 1.53.84.52"
             />
-            <p className="text-xs text-gray-400 mt-1">
-              Nhập <code>*</code> nếu cho phép mọi mạng, hoặc nhập địa chỉ IP công cộng của router WiFi trường (hỗ trợ nhiều IP ngăn cách bằng dấu phẩy).
+            <p className="text-[11px] text-gray-400 mt-1">
+              Nhập <code className="bg-gray-100 px-1 py-0.5 rounded">*</code> nếu cho phép mọi mạng, hoặc nhập địa chỉ IP công cộng của router WiFi trường (hỗ trợ nhiều IP ngăn cách bằng dấu phẩy).
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
                 Tiền tăng ca mặc định (VNĐ/giờ)
               </label>
               <input
                 type="number"
                 value={form.overtime_rate}
                 onChange={(e) => setForm({ ...form, overtime_rate: e.target.value })}
-                className="w-full h-11 px-3.5 border-[1.5px] border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#2e8b57] focus:shadow-[0_0_0_3px_rgba(46,139,87,0.15)]"
+                className="w-full h-11 px-3.5 border border-[#d8e3dc] rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-[#2e8b57] bg-[#f8faf9] focus:bg-white font-medium"
                 placeholder="40000"
               />
-              <p className="text-xs text-gray-400 mt-1">Mặc định 40.000 VNĐ/giờ (sau 17:00).</p>
+              <p className="text-[11px] text-gray-400 mt-1">Mặc định 40.000 VNĐ/giờ (sau 17:00).</p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
                 Thời gian linh động (Grace period - phút)
               </label>
               <input
                 type="number"
                 value={form.grace_minutes}
                 onChange={(e) => setForm({ ...form, grace_minutes: e.target.value })}
-                className="w-full h-11 px-3.5 border-[1.5px] border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#2e8b57] focus:shadow-[0_0_0_3px_rgba(46,139,87,0.15)]"
+                className="w-full h-11 px-3.5 border border-[#d8e3dc] rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-[#2e8b57] bg-[#f8faf9] focus:bg-white font-medium"
                 placeholder="1"
               />
-              <p className="text-xs text-gray-400 mt-1">Cho phép vào trễ tối đa trước khi tính đi trễ.</p>
+              <p className="text-[11px] text-gray-400 mt-1">Cho phép vào trễ tối đa trước khi tính đi trễ.</p>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-100 flex justify-end">
+          <div className="pt-4 border-t border-[#f0f4f1] flex justify-end">
             <button
               type="submit"
               disabled={saving}
-              className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow transition-colors disabled:opacity-50"
+              className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer border-none"
             >
               {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
             </button>

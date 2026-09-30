@@ -141,78 +141,80 @@ export default function TeachersPage() {
   };
 
   return (
-    <>
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#eef2f0] shadow-sm">
         <div>
-          <p className="text-sm text-gray-500">Tổng: {teachers.length} giáo viên</p>
+          <p className="text-xs sm:text-sm font-semibold text-gray-500">
+            Tổng cộng: <strong className="text-gray-900">{teachers.length}</strong> giáo viên trong trường
+          </p>
         </div>
         <button
           onClick={openCreate}
-          className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow transition-colors"
+          className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-colors cursor-pointer border-none"
         >
-          Thêm giáo viên
+          + Thêm giáo viên
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#eef2f0] overflow-hidden">
         <div className="w-full overflow-x-auto">
-          <table className="w-full border-collapse text-sm text-left">
+          <table className="w-full border-collapse text-xs text-left">
             <thead>
-              <tr>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200 w-10">#</th>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Họ tên</th>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Email</th>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Vai trò</th>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Giới tính</th>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">SĐT</th>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Ca làm việc</th>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Trạng thái</th>
-                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200 text-center">Hành động</th>
+              <tr className="bg-[#f8faf9] text-gray-700 font-bold uppercase tracking-wider border-b border-[#eef2f0]">
+                <th className="px-4 py-3 w-10">#</th>
+                <th className="px-4 py-3">Họ tên</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Vai trò</th>
+                <th className="px-4 py-3">Giới tính</th>
+                <th className="px-4 py-3">SĐT</th>
+                <th className="px-4 py-3">Ca làm việc</th>
+                <th className="px-4 py-3">Trạng thái</th>
+                <th className="px-4 py-3 text-center">Hành động</th>
               </tr>
             </thead>
-            <tbody>
-              {loading && <tr><td colSpan={9} className="text-center py-10 text-gray-400">Đang tải...</td></tr>}
-              {!loading && teachers.length === 0 && <tr><td colSpan={9} className="text-center py-10 text-gray-400">Chưa có giáo viên nào</td></tr>}
+            <tbody className="divide-y divide-[#f0f4f1] font-medium">
+              {loading && <tr><td colSpan={9} className="text-center py-12 text-gray-400">Đang tải...</td></tr>}
+              {!loading && teachers.length === 0 && <tr><td colSpan={9} className="text-center py-12 text-gray-400">Chưa có giáo viên nào</td></tr>}
               {teachers.map((t, i) => (
-                <tr key={t.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 border-b border-slate-100">{i + 1}</td>
-                  <td className="px-4 py-3 border-b border-slate-100 font-semibold whitespace-nowrap">
+                <tr key={t.id} className="hover:bg-[#f9fbf9] transition-colors">
+                  <td className="px-4 py-3 text-gray-400 font-semibold">{i + 1}</td>
+                  <td className="px-4 py-3 font-bold text-gray-900 whitespace-nowrap">
                     {t.gender === 'male' ? 'Thầy' : 'Cô'} {t.full_name}
                   </td>
-                  <td className="px-4 py-3 border-b border-slate-100">{t.email}</td>
-                  <td className="px-4 py-3 border-b border-slate-100">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${t.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>
+                  <td className="px-4 py-3 text-gray-500 font-mono text-[11px]">{t.email}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${t.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>
                       {t.role === 'admin' ? 'Quản trị viên' : 'Giáo viên'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 border-b border-slate-100">{t.gender === 'male' ? 'Nam' : 'Nữ'}</td>
-                  <td className="px-4 py-3 border-b border-slate-100">{t.phone || '—'}</td>
-                  <td className="px-4 py-3 border-b border-slate-100">
+                  <td className="px-4 py-3 text-gray-600">{t.gender === 'male' ? 'Nam' : 'Nữ'}</td>
+                  <td className="px-4 py-3 text-gray-600 font-medium">{t.phone || '—'}</td>
+                  <td className="px-4 py-3">
                     {(!t.shift_assignments || t.shift_assignments.length === 0) ? (
-                      <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Chưa gán ca</span>
+                      <span className="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-semibold">Chưa gán ca</span>
                     ) : (
                       <div className="flex flex-wrap gap-1">
                         {t.shift_assignments
                           .filter(a => a.is_active && a.shift)
                           .map(a => (
-                            <span key={a.id} className="text-xs bg-[#e8f5e9] text-[#2e8b57] font-medium px-2 py-0.5 rounded border border-[rgba(46,139,87,0.2)] whitespace-nowrap">
+                            <span key={a.id} className="text-[11px] bg-[#eef7ee] text-[#1e6b3e] font-bold px-2 py-0.5 rounded-md border border-[#cbe4cb] whitespace-nowrap">
                               {a.shift?.name}
                             </span>
                           ))}
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3 border-b border-slate-100">
-                    <button onClick={() => handleToggle(t)} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold cursor-pointer border-none ${t.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  <td className="px-4 py-3">
+                    <button onClick={() => handleToggle(t)} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11.5px] font-bold cursor-pointer border-none transition-colors ${t.is_active ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
                       {t.is_active ? '● Hoạt động' : '○ Tạm khóa'}
                     </button>
                   </td>
-                  <td className="px-4 py-3 border-b border-slate-100 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button onClick={() => openEdit(t)} className="px-2.5 py-1 rounded-md text-[12.5px] font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer">Sửa</button>
-                      <button onClick={() => handleDelete(t.id, t.full_name)} className="px-2.5 py-1 rounded-md text-[12.5px] font-semibold bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white transition-colors cursor-pointer">Xóa</button>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button onClick={() => openEdit(t)} className="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer">Sửa</button>
+                      <button onClick={() => handleDelete(t.id, t.full_name)} className="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white transition-colors cursor-pointer">Xóa</button>
                     </div>
                   </td>
                 </tr>
@@ -322,6 +324,6 @@ export default function TeachersPage() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
