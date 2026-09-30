@@ -25,7 +25,11 @@ export async function POST(req: Request) {
     const supabase = createAdminClient();
     const userId = (session.user as any).id;
     const userGender = (session.user as any).gender;
-    const userName = session.user.name || '';
+    let userName = session.user.name || '';
+    if (!userName && userId) {
+      const { data: dbUser } = await supabase.from('users').select('full_name').eq('id', userId).single();
+      if (dbUser?.full_name) userName = dbUser.full_name;
+    }
     const today = getTodayString();
 
     // Anti-fraud: kiểm tra IP
@@ -181,7 +185,11 @@ export async function PUT(req: Request) {
     const supabase = createAdminClient();
     const userId = (session.user as any).id;
     const userGender = (session.user as any).gender;
-    const userName = session.user.name || '';
+    let userName = session.user.name || '';
+    if (!userName && userId) {
+      const { data: dbUser } = await supabase.from('users').select('full_name').eq('id', userId).single();
+      if (dbUser?.full_name) userName = dbUser.full_name;
+    }
     const clientIP = getClientIP(new Headers(req.headers));
 
     // Lấy record + shift

@@ -6,7 +6,7 @@ import { signOut } from 'next-auth/react';
 import { useWifiCheck } from '@/hooks/useWifiCheck';
 import { useDeviceFingerprint } from '@/hooks/useDeviceFingerprint';
 import { getGreeting } from '@/lib/greeting';
-import { getTodayString } from '@/lib/utils';
+import { getTodayString, formatDate, formatTime } from '@/lib/utils';
 import Image from 'next/image';
 
 interface Shift { id: string; name: string; type: string; start_time: string; end_time: string; }
@@ -40,7 +40,7 @@ export default function TeacherPage() {
   const [guideOpen, setGuideOpen] = useState(false);
 
   const todayString = getTodayString();
-  const todayFormatted = new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const todayFormatted = formatDate(new Date());
   const greeting = user ? getGreeting(user.gender as 'male' | 'female', user.name || '') : '';
 
   // Fetch shifts
@@ -51,17 +51,17 @@ export default function TeacherPage() {
       .catch(() => {});
   }, []);
 
-  // Fetch today stats
+  // Fetch today stats with cache-busting
   const fetchToday = useCallback(() => {
-    fetch('/api/attendance/today')
+    fetch(`/api/attendance/today?_t=${Date.now()}`, { cache: 'no-store' })
       .then(r => r.json())
       .then(data => { setRegular(data.regular || []); setExtra(data.extra || []); })
       .catch(() => {});
   }, []);
 
-  useEffect(() => { fetchToday(); const iv = setInterval(fetchToday, 30000); return () => clearInterval(iv); }, [fetchToday]);
+  useEffect(() => { fetchToday(); const iv = setInterval(fetchToday, 15000); return () => clearInterval(iv); }, [fetchToday]);
 
-  const myRecord = regular.find(r => r.user_id === user?.id && r.shift_id === selectedShift && r.attendance_date === todayString);
+  const myRecord = regular.find(r => r.user_id === user?.id && r.shift_id === selectedShift);
   const isCheckedIn = !!myRecord;
   const isCheckedOut = isCheckedIn && myRecord.status === 'checked_out';
 
@@ -76,9 +76,10 @@ export default function TeacherPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        const time = data.data?.attendance?.check_in_time ? new Date(data.data.attendance.check_in_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '';
+        const time = data.data?.attendance?.check_in_time ? formatTime(data.data.attendance.check_in_time) : '';
         setResult({ type: 'success', message: data.message, time });
         fetchToday();
+        setTimeout(fetchToday, 800);
       } else {
         setResult({ type: 'error', message: data.error });
       }
@@ -97,9 +98,10 @@ export default function TeacherPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        const time = data.data?.attendance?.check_out_time ? new Date(data.data.attendance.check_out_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '';
+        const time = data.data?.attendance?.check_out_time ? formatTime(data.data.attendance.check_out_time) : '';
         setResult({ type: 'success', message: data.message, time });
         fetchToday();
+        setTimeout(fetchToday, 800);
       } else {
         setResult({ type: 'error', message: data.error });
       }
@@ -107,7 +109,7 @@ export default function TeacherPage() {
     setLoading(false);
   };
 
-  const fmtTime = (t: string | null) => t ? new Date(t).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '—';
+  const fmtTime = (t: string | null) => formatTime(t);
   const getTitle = (g?: string) => g === 'male' ? 'Thầy' : 'Cô';
 
   return (

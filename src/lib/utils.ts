@@ -52,16 +52,22 @@ export function formatTimeWithSeconds(date: Date | string | null): string {
  * Get today's date string in YYYY-MM-DD format (Vietnam timezone)
  */
 export function getTodayString(): string {
-  const now = new Date();
-  const vnDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
-  return vnDate.toISOString().split('T')[0];
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(new Date());
 }
 
 /**
  * Get current Vietnam time
  */
 export function getVietnamNow(): Date {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  return new Date(utc + 7 * 3600000);
 }
 
 /**
