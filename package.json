@@ -28,6 +28,7 @@
     "@supabase/supabase-js": "^2.117.2",
     "@types/node": "^26.6.3",
     "@types/react": "^19.3.0",
+    "@vercel/analytics": "^2.0.1",
     "autoprefixer": "^10.6.1",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
