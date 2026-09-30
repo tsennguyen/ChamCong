@@ -3,6 +3,9 @@ import { requireAdmin } from '@/lib/auth-check';
 import { createAdminClient } from '@/lib/supabase/server';
 import bcrypt from 'bcryptjs';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET: Danh sách giáo viên (cho Admin)
 export async function GET() {
   try {
@@ -14,7 +17,13 @@ export async function GET() {
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('users')
-      .select('id, email, full_name, gender, phone, role, is_active, must_change_password, created_at')
+      .select(`
+        id, email, full_name, gender, phone, role, is_active, must_change_password, created_at,
+        shift_assignments:shift_assignments(
+          id, shift_id, is_active,
+          shift:shifts(id, name, start_time, end_time)
+        )
+      `)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -35,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { email, password, full_name, gender, phone, role = 'teacher' } = body;
+    const { email, password, full_name, gender, phone, role = 'teacher', shift_ids = [] } = body;
 
     if (!email || !password || !full_name) {
       return NextResponse.json({ error: 'Vui lòng nhập họ tên, email và mật khẩu' }, { status: 400 });
@@ -75,17 +84,12 @@ export async function POST(req: Request) {
 
     if (createErr) throw createErr;
 
-    // Tự động gán vào tất cả ca làm việc đang hoạt động để giáo viên có thể điểm danh ngay
-    const { data: activeShifts } = await supabase
-      .from('shifts')
-      .select('id')
-      .eq('is_active', true);
-
-    if (activeShifts && activeShifts.length > 0) {
-      const assignments = (activeShifts as Array<{ id: string }>).map((s) => ({
+    // Gán các ca làm việc được chỉ định cho giáo viên
+    if (Array.isArray(shift_ids) && shift_ids.length > 0) {
+      const assignments = shift_ids.map((sId: string) => ({
         user_id: newUser.id,
-        shift_id: s.id,
-        effective_from: new Date().toISOString().slice(0, 10),
+        shift_id: sId,
+        effective_from: '2026-01-01',
         is_active: true,
       }));
       await supabase.from('shift_assignments').insert(assignments);
