@@ -14,6 +14,7 @@ import {
   CheckCircle,
   Sparkles,
   XCircle,
+  Plus,
 } from 'lucide-react';
 import { useWifiCheck } from '@/hooks/useWifiCheck';
 import { useDeviceFingerprint } from '@/hooks/useDeviceFingerprint';
@@ -43,34 +44,32 @@ const translations = {
     address: 'T16-33, Vinhomes Grand Park, TP. Thủ Đức',
     teacher: 'Giáo viên',
     logout: 'Thoát',
-    teacherAttendance: 'Điểm danh giáo viên',
-    statusCompleted: 'Đã hoàn thành ca',
+    teacherAttendance: 'Điểm danh',
+    statusCompleted: 'Đã hoàn thành',
     statusNotEnough: 'Không đủ giờ làm',
-    statusWorking: 'Đang trong ca',
+    statusWorking: 'Đang làm việc',
     statusNotStarted: 'Chưa vào ca',
     currentShiftPrefix: 'Ca:',
-    selectShiftLabel: 'Lựa chọn ca làm việc',
-    selectShiftHint: 'Chạm để đổi ca khác nếu có',
+    selectShiftLabel: 'Ca làm việc',
+    selectShiftHint: '',
     noShiftAssigned: 'Chưa có ca nào được phân công',
-    clockInAt: 'Vào ca lúc:',
-    clockOutAt: 'Ra về lúc:',
+    clockInAt: 'Vào ca:',
+    clockOutAt: 'Ra về:',
     late: 'Trễ',
     mins: 'phút',
     overtime: 'Tăng ca',
     mainShift: 'Ca chính',
     extraShift: 'Ngoài giờ',
-    wifiConnected: 'Đã kết nối đúng mạng trường:',
-    wifiReady: 'Bạn đã sẵn sàng điểm danh!',
-    wifiBlocked: 'Không thể chấm công: Vui lòng kết nối vào WiFi của trường',
+    wifiConnected: 'WiFi trường:',
+    wifiReady: 'Sẵn sàng điểm danh!',
+    wifiBlocked: 'Vui lòng kết nối WiFi trường:',
     wifiInvalid: 'Mạng hiện tại không hợp lệ.',
     wifiChecking: 'Đang kiểm tra WiFi trường học...',
-    notePlaceholderIn: 'VD: Điểm danh vào ca...',
-    notePlaceholderOut: 'VD: Bàn giao bé cho phụ huynh, hoàn thành giáo án...',
-    noteLabelIn: 'Ghi chú khi vào ca (không bắt buộc):',
-    noteLabelOut: 'Ghi chú khi ra về (không bắt buộc):',
-    btnCheckin: 'Điểm danh Vào Ca (Check-in)',
-    btnCheckout: 'Điểm danh Ra Về (Check-out)',
-    inShiftMsg: 'Cô đang trong ca làm việc. Chúc cô một ngày dạy học thật nhiều niềm vui!',
+    addNote: '+ Ghi chú',
+    notePlaceholder: 'Ghi chú (nếu có)...',
+    btnCheckin: 'Check-in',
+    btnCheckout: 'Check-out',
+    inShiftMsg: '',
     shiftCompleteSuccess: 'Đã hoàn tất ca làm việc!',
     shiftCompleteNotEnough: 'Ca làm việc không đủ giờ quy định (< 30 phút)',
     notEnoughWarning: 'Ca này không đủ thời gian tối thiểu 30 phút và không được tính công (0 công).',
@@ -129,34 +128,32 @@ const translations = {
     address: 'T16-33, Vinhomes Grand Park, Thu Duc City',
     teacher: 'Teacher',
     logout: 'Log out',
-    teacherAttendance: 'Teacher Attendance',
-    statusCompleted: 'Shift Completed',
+    teacherAttendance: 'Attendance',
+    statusCompleted: 'Completed',
     statusNotEnough: 'Not Enough Hours',
     statusWorking: 'On Duty',
     statusNotStarted: 'Not Clocked In',
     currentShiftPrefix: 'Shift:',
-    selectShiftLabel: 'Select Working Shift',
-    selectShiftHint: 'Tap to switch shifts if available',
+    selectShiftLabel: 'Shift',
+    selectShiftHint: '',
     noShiftAssigned: 'No shifts assigned',
-    clockInAt: 'Clock-in at:',
-    clockOutAt: 'Clock-out at:',
+    clockInAt: 'Clock-in:',
+    clockOutAt: 'Clock-out:',
     late: 'Late',
     mins: 'mins',
     overtime: 'Overtime',
     mainShift: 'Main Shift',
     extraShift: 'Overtime',
-    wifiConnected: 'Connected to school network:',
-    wifiReady: 'You are ready to clock in!',
-    wifiBlocked: 'Cannot clock in: Please connect to school WiFi',
+    wifiConnected: 'School WiFi:',
+    wifiReady: 'Ready to clock in!',
+    wifiBlocked: 'Please connect to school WiFi:',
     wifiInvalid: 'Current network is not permitted.',
     wifiChecking: 'Checking school WiFi connection...',
-    notePlaceholderIn: 'E.g., Clocking in for class...',
-    notePlaceholderOut: 'E.g., Handed over class to parents, finished lesson plan...',
-    noteLabelIn: 'Clock-in note (optional):',
-    noteLabelOut: 'Clock-out note (optional):',
-    btnCheckin: 'Clock In (Check-in)',
-    btnCheckout: 'Clock Out (Check-out)',
-    inShiftMsg: 'You are currently on duty. Have a wonderful day teaching the children!',
+    addNote: '+ Note',
+    notePlaceholder: 'Optional note...',
+    btnCheckin: 'Check-in',
+    btnCheckout: 'Check-out',
+    inShiftMsg: '',
     shiftCompleteSuccess: 'Shift successfully completed!',
     shiftCompleteNotEnough: 'Shift duration below required standard (< 30 mins)',
     notEnoughWarning: 'This shift did not meet the 30-minute minimum requirement and will not be counted (0 attendance).',
@@ -219,6 +216,7 @@ export default function TeacherPage() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [selectedShift, setSelectedShift] = useState('');
   const [userNote, setUserNote] = useState('');
+  const [showNote, setShowNote] = useState(false);
   const [regular, setRegular] = useState<TodayRecord[]>([]);
   const [extra, setExtra] = useState<TodayRecord[]>([]);
   const [result, setResult] = useState<{ type: 'success' | 'error'; message: string; time?: string } | null>(null);
@@ -394,8 +392,8 @@ export default function TeacherPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] border-b border-[rgba(46,139,87,0.12)]">
         <div className="max-w-[800px] mx-auto px-3.5 sm:px-4 py-2.5 sm:py-3 flex justify-between items-center gap-2">
-          {/* Logo & School Name */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {/* Logo only */}
+          <div className="flex items-center shrink-0">
             <Image
               src="/logolumi.jpg"
               alt="Logo"
@@ -403,14 +401,6 @@ export default function TeacherPage() {
               height={42}
               className="w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_6px_rgba(46,139,87,0.2)] object-cover shrink-0"
             />
-            <div className="flex flex-col min-w-0">
-              <span className="text-base sm:text-lg font-bold text-[#2e8b57] tracking-tight leading-tight truncate">
-                {t.schoolName}
-              </span>
-              <span className="text-[10px] sm:text-[11px] font-semibold text-gray-500 truncate">
-                {t.schoolSubtitle}
-              </span>
-            </div>
           </div>
 
           {/* Right Header: Language toggle, Greeting & Logout */}
@@ -450,41 +440,36 @@ export default function TeacherPage() {
       {/* Main */}
       <main className="max-w-[800px] w-full mx-auto px-3.5 sm:px-4 py-4 flex flex-col gap-4 sm:gap-5 flex-1">
         {/* Section 1: Check-in/out Hero Card */}
-        <section className="bg-white rounded-[16px] p-4 sm:p-5 shadow-[0_4px_16px_rgba(0,0,0,0.05)] border border-[#eef2f0] border-l-[5px] border-l-[#2e8b57]">
+        <section className="bg-white rounded-[16px] p-3.5 sm:p-5 shadow-[0_4px_16px_rgba(0,0,0,0.05)] border border-[#eef2f0] border-l-[5px] border-l-[#2e8b57]">
           {/* Header & Status Indicator */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-[#2e8b57] flex items-center gap-2">
-                <span>{t.teacherAttendance}</span>
-                {isCheckedOut ? (
-                  isNotEnoughTime ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 bg-rose-100 px-2.5 py-0.5 rounded-full border border-rose-200">
-                      <AlertCircle className="w-3 h-3 text-rose-600" /> {t.statusNotEnough}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full">
-                      <CheckCircle className="w-3 h-3" /> {t.statusCompleted}
-                    </span>
-                  )
-                ) : isCheckedIn ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                    {t.statusWorking}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h2 className="text-base sm:text-lg font-bold text-[#2e8b57] flex items-center gap-2">
+              <span>{t.teacherAttendance}</span>
+              {isCheckedOut ? (
+                isNotEnoughTime ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 bg-rose-100 px-2.5 py-0.5 rounded-full border border-rose-200">
+                    <AlertCircle className="w-3 h-3 text-rose-600" /> {t.statusNotEnough}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                    {t.statusNotStarted}
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full">
+                    <CheckCircle className="w-3 h-3" /> {t.statusCompleted}
                   </span>
-                )}
-              </h2>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {currentShift ? `${t.currentShiftPrefix} ${currentShift.name} (${currentShift.start_time} - ${currentShift.end_time})` : t.selectShiftLabel}
-              </p>
-            </div>
+                )
+              ) : isCheckedIn ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                  {t.statusWorking}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                  {t.statusNotStarted}
+                </span>
+              )}
+            </h2>
 
             {/* Quick shift status tag */}
             {isCheckedIn && myRecord && (
-              <div className="text-xs text-gray-600 bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1 self-start sm:self-auto">
+              <div className="text-xs text-gray-600 bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1">
                 {t.clockInAt} <strong className="text-emerald-700 font-bold">{fmtTime(myRecord.check_in_time)}</strong>
                 {myRecord.late_minutes > 0 && (
                   <span className="text-rose-600 font-semibold ml-1">
@@ -495,87 +480,113 @@ export default function TeacherPage() {
             )}
           </div>
 
-          {/* Realtime Vietnam Clock */}
-          <RealtimeClock />
+          {/* Realtime Vietnam Clock with WiFi indicator */}
+          <RealtimeClock
+            lang={lang}
+            rightElement={
+              network ? (
+                network.allowed ? (
+                  <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-emerald-800 bg-emerald-100/90 px-2 sm:px-2.5 py-1 rounded-full border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    {network.school_ssid}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    {lang === 'vi' ? 'Sai WiFi' : 'Wrong WiFi'}
+                  </span>
+                )
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] text-gray-500">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse" />
+                  WiFi...
+                </span>
+              )
+            }
+          />
 
-          {/* Shift Selection */}
-          <div className="mb-3.5">
-            <label className="block text-xs sm:text-[13px] font-semibold text-gray-700 mb-1.5 flex items-center justify-between">
-              <span>{t.selectShiftLabel}</span>
-              <span className="text-[11px] text-gray-400 font-normal">{t.selectShiftHint}</span>
+          {/* WiFi Blocked Alert (Only if invalid network) */}
+          {network && !network.allowed && (
+            <div className="flex items-center gap-2 text-xs font-semibold p-2.5 rounded-xl mb-3 bg-red-50 text-red-700 border border-red-200">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <span>{t.wifiBlocked} <strong>{network.school_ssid}</strong></span>
+            </div>
+          )}
+
+          {/* Shift Selection: Just the hours (07:00 - 17:00) */}
+          <div className="mb-3">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              {t.selectShiftLabel}
             </label>
             <div className="relative">
               <select
                 value={selectedShift}
                 onChange={e => setSelectedShift(e.target.value)}
-                className="w-full h-12 border-[1.5px] border-emerald-600/30 rounded-xl px-3.5 pr-10 text-[14px] sm:text-[15px] font-semibold text-gray-800 bg-emerald-50/20 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all appearance-none cursor-pointer"
+                className="w-full h-11 border border-gray-200 rounded-xl px-3 pr-9 text-sm font-semibold text-gray-800 bg-gray-50/50 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/10 outline-none transition-all appearance-none cursor-pointer"
               >
                 {shifts.length === 0 && <option>{t.noShiftAssigned}</option>}
-                {shifts.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.start_time} - {s.end_time}) {s.type === 'overtime' ? `• ${t.extraShift}` : `• ${t.mainShift}`}
-                  </option>
-                ))}
+                {shifts.map(s => {
+                  const start = s.start_time.slice(0, 5);
+                  const end = s.end_time.slice(0, 5);
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {start} - {end}
+                    </option>
+                  );
+                })}
               </select>
-              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-700">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
                 <ChevronDown className="w-4 h-4" />
               </div>
             </div>
           </div>
 
-          {/* WiFi status */}
-          {network ? (
-            <div className={`flex items-start sm:items-center gap-2.5 text-xs sm:text-[13px] font-medium p-3 sm:px-3.5 sm:py-2.5 rounded-xl mb-3.5 transition-all ${
-              network.allowed 
-                ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' 
-                : 'bg-red-50 text-red-700 border border-red-300'
-            }`}>
-              <span className={`w-2.5 h-2.5 rounded-full shrink-0 mt-0.5 sm:mt-0 ${
-                network.allowed ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'
-              }`} />
-              <div className="flex-1 leading-relaxed">
-                {network.allowed ? (
-                  <span>
-                    {t.wifiConnected} <strong>{network.school_ssid}</strong>. {t.wifiReady}
-                  </span>
-                ) : (
-                  <span>
-                    <strong>{t.wifiBlocked} ({network.school_ssid})</strong>. {t.wifiInvalid} (IP: {network.client_ip}).
-                  </span>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-xl mb-3.5 bg-gray-50 text-gray-600 border border-gray-200">
-              <span className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" />
-              <span>{t.wifiChecking}</span>
-            </div>
-          )}
-
-          {/* Optional Note Input (Only show when not checked out yet) */}
+          {/* Optional Note (Collapsed by default, only opened on demand) */}
           {!isCheckedOut && (
-            <div className="mb-4">
-              <label className="block text-[12px] font-semibold text-gray-600 mb-1">
-                {isCheckedIn ? t.noteLabelOut : t.noteLabelIn}
-              </label>
-              <input
-                type="text"
-                value={userNote}
-                onChange={e => setUserNote(e.target.value)}
-                placeholder={isCheckedIn ? t.notePlaceholderOut : t.notePlaceholderIn}
-                className="w-full h-10 px-3 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-gray-400"
-              />
+            <div className="mb-3">
+              {showNote || userNote ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={userNote}
+                    onChange={e => setUserNote(e.target.value)}
+                    placeholder={t.notePlaceholder}
+                    className="flex-1 h-9 px-3 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-emerald-500 outline-none transition-all placeholder:text-gray-400"
+                    autoFocus={showNote && !userNote}
+                  />
+                  {!userNote && (
+                    <button
+                      type="button"
+                      onClick={() => setShowNote(false)}
+                      className="text-xs text-gray-400 hover:text-gray-600 px-1 py-1"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex justify-end -mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowNote(true)}
+                    className="text-[11.5px] text-gray-400 hover:text-emerald-700 flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>{t.addNote}</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
           {/* Mobile-First Big Contextual Action Buttons */}
-          <div className="mb-3.5">
+          <div className="mb-3">
             {!isCheckedIn ? (
-              /* Case 1: NOT CHECKED IN YET -> Big Green Check-in CTA Button */
+              /* Case 1: NOT CHECKED IN YET -> Check-in */
               <button
                 onClick={handleCheckin}
                 disabled={loading || (network !== null && !network.allowed)}
-                className="w-full h-14 bg-gradient-to-r from-[#2e8b57] to-[#257347] hover:brightness-105 active:scale-[0.99] text-white rounded-xl text-base font-bold flex items-center justify-center gap-2.5 shadow-md shadow-emerald-900/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full h-12 bg-[#2e8b57] hover:bg-[#257347] active:scale-[0.99] text-white rounded-xl text-base font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-900/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {loading ? (
                   <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -585,24 +596,19 @@ export default function TeacherPage() {
                 <span>{t.btnCheckin}</span>
               </button>
             ) : !isCheckedOut ? (
-              /* Case 2: IN SHIFT -> Big Red Check-out CTA Button */
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={handleCheckout}
-                  disabled={loading}
-                  className="w-full h-14 bg-gradient-to-r from-rose-600 to-red-600 hover:brightness-105 active:scale-[0.99] text-white rounded-xl text-base font-bold flex items-center justify-center gap-2.5 shadow-md shadow-rose-900/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {loading ? (
-                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <LogOut className="w-5 h-5 shrink-0" />
-                  )}
-                  <span>{t.btnCheckout}</span>
-                </button>
-                <p className="text-center text-[11.5px] text-gray-500">
-                  {t.inShiftMsg}
-                </p>
-              </div>
+              /* Case 2: IN SHIFT -> Check-out */
+              <button
+                onClick={handleCheckout}
+                disabled={loading}
+                className="w-full h-12 bg-rose-600 hover:bg-rose-700 active:scale-[0.99] text-white rounded-xl text-base font-bold flex items-center justify-center gap-2 shadow-md shadow-rose-900/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {loading ? (
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <LogOut className="w-5 h-5 shrink-0" />
+                )}
+                <span>{t.btnCheckout}</span>
+              </button>
             ) : (
               /* Case 3: COMPLETED SHIFT TODAY */
               isNotEnoughTime ? (
