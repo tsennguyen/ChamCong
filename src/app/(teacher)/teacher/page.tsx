@@ -38,6 +38,7 @@ export default function TeacherPage() {
   const [result, setResult] = useState<{ type: 'success' | 'error'; message: string; time?: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [network, setNetwork] = useState<{ allowed: boolean; client_ip: string; school_ssid: string } | null>(null);
 
   const todayString = getTodayString();
   const todayFormatted = formatDate(new Date());
@@ -55,7 +56,11 @@ export default function TeacherPage() {
   const fetchToday = useCallback(() => {
     fetch(`/api/attendance/today?_t=${Date.now()}`, { cache: 'no-store' })
       .then(r => r.json())
-      .then(data => { setRegular(data.regular || []); setExtra(data.extra || []); })
+      .then(data => {
+        setRegular(data.regular || []);
+        setExtra(data.extra || []);
+        if (data.network) setNetwork(data.network);
+      })
       .catch(() => {});
   }, []);
 
@@ -153,16 +158,31 @@ export default function TeacherPage() {
           </div>
 
           {/* WiFi status */}
-          <div className={`flex items-center gap-2 text-[13.5px] font-medium px-3 py-2 rounded-lg mb-4 ${wifiOk ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' : 'bg-amber-50 text-amber-800 border border-amber-300'}`}>
-            <span className={`w-2 h-2 rounded-full ${wifiOk ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            <span>{wifiOk ? `Đã kết nối mạng trường học` : 'Vui lòng kết nối mạng trường để chấm công'}</span>
-          </div>
+          {network ? (
+            <div className={`flex items-center gap-2.5 text-[13px] font-medium px-3.5 py-2.5 rounded-lg mb-4 ${network.allowed ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' : 'bg-red-50 text-red-700 border border-red-300'}`}>
+              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${network.allowed ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+              <div className="flex-1">
+                {network.allowed ? (
+                  <span>Đã kết nối đúng mạng trường học <strong>({network.school_ssid})</strong></span>
+                ) : (
+                  <span>
+                    <strong>Không thể chấm công:</strong> Vui lòng kết nối vào mạng WiFi trường <strong>({network.school_ssid})</strong>. Mạng hiện tại (IP: {network.client_ip}) không được phép.
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-[13px] font-medium px-3 py-2 rounded-lg mb-4 bg-gray-50 text-gray-600 border border-gray-200">
+              <span className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" />
+              <span>Đang kiểm tra kết nối mạng trường...</span>
+            </div>
+          )}
 
           {/* Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             <button
               onClick={handleCheckin}
-              disabled={loading || isCheckedIn}
+              disabled={loading || isCheckedIn || (network !== null && !network.allowed)}
               className="h-12 bg-[#2e8b57] hover:brightness-[0.92] active:scale-[0.99] text-white rounded-[10px] text-[15px] font-bold flex items-center justify-center gap-2 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Check-in

@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-check';
 import { createAdminClient } from '@/lib/supabase/server';
+import { getClientIP } from '@/lib/anti-fraud';
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export async function GET(req: Request) {
   try {
     const auth = await requireAdmin();
     if (!auth.allowed) {
@@ -17,6 +21,8 @@ export async function GET() {
     ((data || []) as Array<{ key: string; value: string }>).forEach((c) => {
       configMap[c.key] = c.value;
     });
+
+    configMap.current_ip = getClientIP(new Headers(req.headers));
 
     return NextResponse.json(configMap);
   } catch (error: unknown) {

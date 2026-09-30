@@ -64,10 +64,28 @@ export async function POST(req: Request) {
       .eq('user_id', userId)
       .eq('shift_id', shift_id)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (!assignment) {
-      return NextResponse.json({ error: 'Ca làm việc chưa được phân công cho bạn' }, { status: 403 });
+      // Kiểm tra ca có hợp lệ và đang hoạt động không
+      const { data: validShift } = await supabase
+        .from('shifts')
+        .select('id')
+        .eq('id', shift_id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (!validShift) {
+        return NextResponse.json({ error: 'Ca làm việc không hợp lệ hoặc đã ngừng hoạt động' }, { status: 403 });
+      }
+
+      // Tự động phân công ca đang hoạt động cho giáo viên
+      await supabase.from('shift_assignments').insert({
+        user_id: userId,
+        shift_id: shift_id,
+        effective_from: today,
+        is_active: true,
+      });
     }
 
     // Kiểm tra đã check-in chưa

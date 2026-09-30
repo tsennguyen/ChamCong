@@ -2,13 +2,27 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getTodayString } from '@/lib/utils';
 
+import { getClientIP, checkIPWhitelist } from '@/lib/anti-fraud';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const supabase = createAdminClient();
     const today = getTodayString();
+    const clientIP = getClientIP(new Headers(req.headers));
+
+    // Lấy config mạng trường
+    const { data: configs } = await supabase.from('app_config').select('key, value');
+    const configMap: Record<string, string> = {};
+    ((configs || []) as Array<{ key: string; value: string }>).forEach((c) => {
+      configMap[c.key] = c.value;
+    });
+
+    const allowedRange = configMap.school_ip_range || '*';
+    const isNetworkAllowed = checkIPWhitelist(clientIP, allowedRange);
+    const wifiSSID = configMap.wifi_ssid || 'WiFi trường học';
 
     // Lấy attendance ca hành chính
     const { data: regular, error: regErr } = await supabase
@@ -32,7 +46,15 @@ export async function GET() {
 
     if (extErr) throw extErr;
 
-    return NextResponse.json({ regular: regular || [], extra: extra || [] });
+    return NextResponse.json({
+      regular: regular || [],
+      extra: extra || [],
+      network: {
+        allowed: isNetworkAllowed,
+        client_ip: clientIP,
+        school_ssid: wifiSSID,
+      },
+    });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Lỗi hệ thống';
     return NextResponse.json({ error: msg }, { status: 500 });

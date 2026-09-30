@@ -17,25 +17,37 @@ export function checkIPWhitelist(
   clientIP: string,
   allowedRange: string
 ): boolean {
-  // Simple check: if allowedRange is a CIDR like 192.168.1.0/24
-  // For simple deployment, we check if IP starts with the network prefix
-  if (!allowedRange || allowedRange === '*') return true;
+  if (!allowedRange || allowedRange.trim() === '' || allowedRange.trim() === '*') return true;
+  const cleanClient = clientIP.trim();
 
-  if (allowedRange.includes('/')) {
-    const [network, bits] = allowedRange.split('/');
-    const networkParts = network.split('.').map(Number);
-    const ipParts = clientIP.split('.').map(Number);
-    const maskBits = parseInt(bits);
-    const fullOctets = Math.floor(maskBits / 8);
+  // Tách danh sách IP theo dấu phẩy, chấm phẩy, khoảng trắng hoặc dòng mới
+  const ranges = allowedRange.split(/[\s,;]+/).map(r => r.trim()).filter(Boolean);
+  if (ranges.includes('*')) return true;
 
-    for (let i = 0; i < fullOctets; i++) {
-      if (networkParts[i] !== ipParts[i]) return false;
+  for (const r of ranges) {
+    if (r === cleanClient) return true;
+
+    if (r.includes('/')) {
+      const [network, bits] = r.split('/');
+      const maskBits = parseInt(bits, 10);
+      const networkParts = network.split('.').map(Number);
+      const ipParts = cleanClient.split('.').map(Number);
+
+      if (networkParts.length === 4 && ipParts.length === 4 && !isNaN(maskBits)) {
+        const fullOctets = Math.floor(maskBits / 8);
+        let match = true;
+        for (let i = 0; i < fullOctets; i++) {
+          if (networkParts[i] !== ipParts[i]) {
+            match = false;
+            break;
+          }
+        }
+        if (match) return true;
+      }
     }
-    return true;
   }
 
-  // Direct IP match
-  return clientIP === allowedRange;
+  return false;
 }
 
 /**

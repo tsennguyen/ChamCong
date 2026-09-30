@@ -7,6 +7,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const [currentIp, setCurrentIp] = useState('');
   const [form, setForm] = useState({
     wifi_ssid: 'Lumi-WiFi',
     school_ip_range: '*',
@@ -19,6 +20,7 @@ export default function SettingsPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data && typeof data === 'object') {
+          if (data.current_ip) setCurrentIp(data.current_ip);
           setForm((prev) => ({
             ...prev,
             wifi_ssid: data.wifi_ssid || prev.wifi_ssid,
@@ -97,18 +99,36 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Dải IP trường học (Chống gian lận vị trí)
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-semibold text-gray-700">
+                Dải IP trường học (Chống gian lận vị trí)
+              </label>
+              {currentIp && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const existing = form.school_ip_range.trim();
+                    if (existing === '*' || !existing) {
+                      setForm({ ...form, school_ip_range: currentIp });
+                    } else if (!existing.includes(currentIp)) {
+                      setForm({ ...form, school_ip_range: `${existing}, ${currentIp}` });
+                    }
+                  }}
+                  className="text-xs text-[#2e8b57] hover:underline font-medium bg-[#e8f5e9] px-2 py-0.5 rounded cursor-pointer border-none"
+                >
+                  + Lấy IP hiện tại ({currentIp})
+                </button>
+              )}
+            </div>
             <input
               type="text"
               value={form.school_ip_range}
               onChange={(e) => setForm({ ...form, school_ip_range: e.target.value })}
               className="w-full h-11 px-3.5 border-[1.5px] border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#2e8b57] focus:shadow-[0_0_0_3px_rgba(46,139,87,0.15)]"
-              placeholder="VD: * (cho phép tất cả) hoặc 192.168.1.0/24"
+              placeholder="VD: * (cho phép tất cả) hoặc 1.53.84.52"
             />
             <p className="text-xs text-gray-400 mt-1">
-              Nhập <code>*</code> nếu trường chưa có IP tĩnh, hoặc danh sách IP công cộng của trường ngăn cách bằng dấu phẩy.
+              Nhập <code>*</code> nếu cho phép mọi mạng, hoặc nhập địa chỉ IP công cộng của router WiFi trường (hỗ trợ nhiều IP ngăn cách bằng dấu phẩy).
             </p>
           </div>
 
