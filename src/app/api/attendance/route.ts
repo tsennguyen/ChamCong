@@ -341,6 +341,10 @@ export async function GET(req: Request) {
       .order('attendance_date', { ascending: false })
       .order('check_in_time', { ascending: false });
 
+    const sessionUser = session.user as any;
+    const isAdmin = sessionUser?.role === 'admin';
+    const filterUserId = isAdmin ? (userId || null) : sessionUser?.id;
+
     if (date) query = query.eq('attendance_date', date);
     if (month) {
       const [y, m] = month.split('-');
@@ -349,7 +353,7 @@ export async function GET(req: Request) {
     }
     if (from) query = query.gte('attendance_date', from);
     if (to) query = query.lte('attendance_date', to);
-    if (userId) query = query.eq('user_id', userId);
+    if (filterUserId) query = query.eq('user_id', filterUserId);
     if (shiftType) query = query.eq('shift_type', shiftType);
 
     const { data, error } = await query;

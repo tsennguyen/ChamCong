@@ -1,20 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from 'next-auth/react';
+import Link from 'next/link';
+import { KeyRound, CalendarCheck, ChevronDown, ChevronUp, Clock, AlertCircle } from 'lucide-react';
 import { useWifiCheck } from '@/hooks/useWifiCheck';
 import { useDeviceFingerprint } from '@/hooks/useDeviceFingerprint';
 import { getGreeting } from '@/lib/greeting';
-import { getTodayString, formatDate, formatTime } from '@/lib/utils';
+import { getTodayString, getCurrentMonthString, formatDate, formatTime } from '@/lib/utils';
 import Image from 'next/image';
 import RealtimeClock from '@/components/RealtimeClock';
+import { PolicyModals, type PolicyType } from '@/components/PolicyModals';
 
 interface Shift { id: string; name: string; type: string; start_time: string; end_time: string; }
 interface TodayRecord {
   id: string; user_id: string; shift_id: string; attendance_date: string;
   check_in_time: string | null; check_out_time: string | null;
-  late_minutes: number; overtime_minutes: number; status: string;
+  late_minutes: number; overtime_minutes: number; overtime_amount?: number; status: string;
   check_in_note: string | null; check_out_note?: string | null; shift_type: string;
   user?: { id: string; full_name: string; gender: string };
   shift?: { id: string; name: string; type: string; start_time: string; end_time: string };
@@ -34,7 +37,15 @@ export default function TeacherPage() {
   const [guideOpen, setGuideOpen] = useState(false);
   const [network, setNetwork] = useState<{ allowed: boolean; client_ip: string; school_ssid: string } | null>(null);
 
+  // Policy modal state
+  const [policyModal, setPolicyModal] = useState<PolicyType>(null);
+
+  // Monthly stats state
+  const [monthRecords, setMonthRecords] = useState<TodayRecord[]>([]);
+  const [showMonthHistory, setShowMonthHistory] = useState(false);
+
   const todayString = getTodayString();
+  const currentMonthStr = getCurrentMonthString();
   const todayFormatted = formatDate(new Date());
   const greeting = user ? getGreeting(user.gender as 'male' | 'female', user.name || '') : '';
 
@@ -58,7 +69,46 @@ export default function TeacherPage() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => { fetchToday(); const iv = setInterval(fetchToday, 15000); return () => clearInterval(iv); }, [fetchToday]);
+  // Fetch monthly stats for current user
+  const fetchMonthRecords = useCallback(() => {
+    fetch(`/api/attendance?month=${currentMonthStr}&_t=${Date.now()}`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) setMonthRecords(data);
+      })
+      .catch(() => {});
+  }, [currentMonthStr]);
+
+  useEffect(() => {
+    fetchToday();
+    fetchMonthRecords();
+    const iv = setInterval(() => {
+      fetchToday();
+    }, 15000);
+    return () => clearInterval(iv);
+  }, [fetchToday, fetchMonthRecords]);
+
+  // Derived monthly calculations
+  const validMonthDays = useMemo(() => {
+    const dates = new Set(
+      monthRecords
+        .filter(r => r.status === 'checked_out' && !(r.check_out_note || '').includes('Không đủ giờ'))
+        .map(r => r.attendance_date)
+    );
+    return dates.size;
+  }, [monthRecords]);
+
+  const totalMonthOTMinutes = useMemo(() => {
+    return monthRecords.reduce((sum, r) => sum + (r.overtime_minutes || 0), 0);
+  }, [monthRecords]);
+
+  const totalMonthOTAmount = useMemo(() => {
+    return monthRecords.reduce((sum, r) => sum + (r.overtime_amount || 0), 0);
+  }, [monthRecords]);
+
+  const totalMonthLateMinutes = useMemo(() => {
+    return monthRecords.reduce((sum, r) => sum + (r.late_minutes || 0), 0);
+  }, [monthRecords]);
 
   const myRecord = [...regular, ...extra].find(r => r.user_id === user?.id && r.shift_id === selectedShift);
   const isCheckedIn = !!myRecord;
@@ -78,7 +128,8 @@ export default function TeacherPage() {
         const time = data.data?.attendance?.check_in_time ? formatTime(data.data.attendance.check_in_time) : '';
         setResult({ type: 'success', message: data.message, time });
         fetchToday();
-        setTimeout(fetchToday, 800);
+        fetchMonthRecords();
+        setTimeout(() => { fetchToday(); fetchMonthRecords(); }, 800);
       } else {
         setResult({ type: 'error', message: data.error });
       }
@@ -100,7 +151,8 @@ export default function TeacherPage() {
         const time = data.data?.attendance?.check_out_time ? formatTime(data.data.attendance.check_out_time) : '';
         setResult({ type: 'success', message: data.message, time });
         fetchToday();
-        setTimeout(fetchToday, 800);
+        fetchMonthRecords();
+        setTimeout(() => { fetchToday(); fetchMonthRecords(); }, 800);
       } else {
         setResult({ type: 'error', message: data.error });
       }
@@ -123,11 +175,19 @@ export default function TeacherPage() {
               <span className="text-[11px] font-semibold text-gray-500">Mầm Non Khai Minh</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-gray-700 hidden sm:inline">{greeting}</span>
+            <Link
+              href="/change-password"
+              className="flex items-center gap-1 border border-gray-200 px-2.5 py-1.5 rounded-lg text-[13px] text-gray-600 hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all"
+              title="Đổi mật khẩu tài khoản"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden sm:inline font-medium">Đổi MK</span>
+            </Link>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="flex items-center gap-1 border border-gray-200 px-2.5 py-1.5 rounded-lg text-[13px] text-gray-600 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all"
+              className="flex items-center gap-1 border border-gray-200 px-2.5 py-1.5 rounded-lg text-[13px] text-gray-600 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all cursor-pointer"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               <span>Thoát</span>
@@ -342,7 +402,119 @@ export default function TeacherPage() {
           </div>
         </section>
 
-        {/* Section 4: Guide */}
+        {/* Section 4: Bảng tổng kết công tháng của cô */}
+        <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
+            <div className="flex items-center gap-2">
+              <CalendarCheck className="w-5 h-5 text-[#2e8b57]" />
+              <h2 className="text-[15px] font-bold text-gray-800">
+                Tổng kết công Tháng {currentMonthStr.split('-')[1]}/{currentMonthStr.split('-')[0]} của {greeting.replace('Chào ', '') || 'Cô'}
+              </h2>
+            </div>
+            <button
+              onClick={() => setShowMonthHistory(!showMonthHistory)}
+              className="text-xs font-bold text-[#2e8b57] hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+            >
+              <span>{showMonthHistory ? 'Thu gọn' : 'Xem lịch sử tháng'}</span>
+              {showMonthHistory ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3.5 flex flex-col justify-between">
+              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">Ngày công chuẩn</span>
+              <div className="mt-1 flex items-baseline gap-1.5">
+                <span className="text-2xl font-black text-emerald-700">{validMonthDays}</span>
+                <span className="text-xs text-emerald-600 font-semibold">buổi/ngày</span>
+              </div>
+              <span className="text-[11px] text-emerald-600/90 mt-1">Đủ chuẩn &gt; 30 phút</span>
+            </div>
+
+            <div className="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5 flex flex-col justify-between">
+              <span className="text-[11px] font-bold text-indigo-800 uppercase tracking-wide">Tăng ca ca chính</span>
+              <div className="mt-1 flex items-baseline gap-1.5">
+                <span className="text-2xl font-black text-indigo-700">{totalMonthOTMinutes}</span>
+                <span className="text-xs text-indigo-600 font-semibold">phút</span>
+              </div>
+              <span className="text-[11px] text-indigo-700 font-bold mt-1">
+                ≈ {new Intl.NumberFormat('vi-VN').format(totalMonthOTAmount)}đ
+              </span>
+            </div>
+
+            <div className="bg-amber-50/70 border border-amber-100 rounded-xl p-3.5 flex flex-col justify-between">
+              <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wide">Số phút đi trễ</span>
+              <div className="mt-1 flex items-baseline gap-1.5">
+                <span className="text-2xl font-black text-amber-700">{totalMonthLateMinutes}</span>
+                <span className="text-xs text-amber-600 font-semibold">phút</span>
+              </div>
+              <span className="text-[11px] text-amber-700/90 mt-1">Ân hạn 1 phút đầu ca</span>
+            </div>
+          </div>
+
+          {/* Collapsible history table */}
+          {showMonthHistory && (
+            <div className="mt-4 pt-3.5 border-t border-slate-100 animate-in fade-in duration-200">
+              <h4 className="text-xs font-bold text-gray-700 mb-2">Chi tiết các ngày đã chấm công trong tháng:</h4>
+              <div className="w-full overflow-x-auto max-h-60 overflow-y-auto rounded-lg border border-slate-100">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                      <th className="px-3 py-2">Ngày</th>
+                      <th className="px-3 py-2">Ca làm việc</th>
+                      <th className="px-3 py-2">Check-in</th>
+                      <th className="px-3 py-2">Check-out</th>
+                      <th className="px-3 py-2">Trễ</th>
+                      <th className="px-3 py-2">Tăng ca</th>
+                      <th className="px-3 py-2">Tình trạng</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {monthRecords.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-4 text-gray-400">
+                          Chưa có dữ liệu chấm công tháng này
+                        </td>
+                      </tr>
+                    ) : (
+                      monthRecords.map(r => {
+                        const noteText = r.check_out_note || (r.late_minutes > 0 ? `Trễ ${r.late_minutes}p` : r.check_in_note || '—');
+                        return (
+                          <tr key={r.id} className="hover:bg-slate-50">
+                            <td className="px-3 py-2 font-medium text-slate-800">{formatDate(r.attendance_date)}</td>
+                            <td className="px-3 py-2 font-medium text-slate-700">{r.shift?.name || '—'}</td>
+                            <td className="px-3 py-2 text-slate-600">{formatTime(r.check_in_time)}</td>
+                            <td className="px-3 py-2 text-slate-600">{formatTime(r.check_out_time)}</td>
+                            <td className="px-3 py-2 text-amber-700 font-semibold">
+                              {r.late_minutes > 0 ? `${r.late_minutes}p` : '0'}
+                            </td>
+                            <td className="px-3 py-2 text-indigo-700 font-semibold">
+                              {r.overtime_minutes > 0 ? `+${r.overtime_minutes}p` : '—'}
+                            </td>
+                            <td className="px-3 py-2">
+                              <span
+                                className={`inline-block px-2 py-0.5 rounded text-[11px] ${
+                                  noteText.includes('Không đủ')
+                                    ? 'bg-rose-100 text-rose-800 font-bold'
+                                    : noteText.includes('Đủ giờ')
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                {noteText}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Section 5: Guide */}
         <section className="bg-white rounded-[14px] shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0] overflow-hidden">
           <button
             onClick={() => setGuideOpen(!guideOpen)}
@@ -369,12 +541,12 @@ export default function TeacherPage() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-6 px-4 bg-white border-t border-[#eef2f0] flex flex-col gap-2 text-xs text-gray-500">
+      <footer className="text-center py-6 px-4 bg-white border-t border-[#eef2f0] flex flex-col gap-2.5 text-xs text-gray-500">
         <div className="font-bold text-gray-800 text-sm">
           LUMI Preschool — Mầm Non Khai Minh
         </div>
         <div className="text-xs font-semibold text-[#2e8b57]">
-          LUMI Preschool - Mầm Non Trải Nghiệm STEAM & Tiếng Anh
+          LUMI Preschool - Mầm Non Trải Nghiệm STEAM &amp; Tiếng Anh
         </div>
         <div className="max-w-[650px] mx-auto text-[12px] leading-relaxed text-gray-500 italic px-2">
           &ldquo;Ở LUMI, mỗi em bé không chỉ được chăm sóc, mà được cô quan sát, ghi nhận và đồng hành theo nhịp phát triển riêng. Con học qua trải nghiệm thực tế, làm quen tiếng Anh tự nhiên và rèn tự lập, cảm xúc, nề nếp mỗi ngày.&rdquo;
@@ -382,11 +554,46 @@ export default function TeacherPage() {
         <div className="text-gray-500 font-medium">
           📍 T16-33, Vinhomes Grand Park, TP. Thủ Đức
         </div>
+
+        {/* Policy & Legal Links */}
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-[12px] font-semibold text-emerald-800/90 pt-3 pb-1 border-t border-gray-100">
+          <button
+            onClick={() => setPolicyModal('privacy')}
+            className="hover:text-emerald-950 hover:underline transition-colors cursor-pointer"
+          >
+            🛡️ Chính sách bảo mật
+          </button>
+          <span className="text-gray-300 hidden sm:inline">•</span>
+          <button
+            onClick={() => setPolicyModal('attendance')}
+            className="hover:text-emerald-950 hover:underline transition-colors cursor-pointer"
+          >
+            📋 Quy chế chấm công
+          </button>
+          <span className="text-gray-300 hidden sm:inline">•</span>
+          <button
+            onClick={() => setPolicyModal('cookie')}
+            className="hover:text-emerald-950 hover:underline transition-colors cursor-pointer"
+          >
+            🍪 Chính sách Cookie
+          </button>
+          <span className="text-gray-300 hidden sm:inline">•</span>
+          <button
+            onClick={() => setPolicyModal('support')}
+            className="hover:text-emerald-950 hover:underline transition-colors cursor-pointer"
+          >
+            📞 Báo sự cố / Hỗ trợ
+          </button>
+        </div>
+
         <div className="text-gray-500 mt-1 pt-2 border-t border-gray-100">
           Thiết kế &amp; Phát triển hệ thống bởi: <a href="mailto:vietthanhnguyen.tsen@gmail.com" className="text-[#2e8b57] font-semibold hover:underline">Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)</a>
         </div>
         <div className="text-[11px] text-gray-400">© 2026 LUMI Preschool. All rights reserved.</div>
       </footer>
+
+      {/* Policy Modals */}
+      <PolicyModals activePolicy={policyModal} onClose={() => setPolicyModal(null)} />
     </div>
   );
 }

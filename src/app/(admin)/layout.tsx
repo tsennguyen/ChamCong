@@ -17,6 +17,7 @@ import {
   LogOut,
   Menu,
 } from 'lucide-react';
+import { PolicyModals, type PolicyType } from '@/components/PolicyModals';
 
 const navItems = [
   { name: 'Tổng quan', href: '/admin', icon: LayoutDashboard },
@@ -32,6 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user } = useAuth();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [policyModal, setPolicyModal] = useState<PolicyType>(null);
 
   const currentPage = navItems.find((i) => i.href === pathname) || navItems[0];
 
@@ -130,9 +132,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Page content */}
         <div className="p-4 md:p-6 flex flex-col gap-5 flex-1">{children}</div>
 
-        {/* Footer Credit */}
-        <footer className="px-6 py-4 bg-white border-t border-gray-200 text-xs text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="text-left">
+        {/* Footer Credit & Policies */}
+        <footer className="px-6 py-4 bg-white border-t border-gray-200 text-xs text-gray-500 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="text-center md:text-left">
             <div className="font-bold text-gray-800">
               LUMI Preschool — Mầm Non Khai Minh
             </div>
@@ -140,10 +142,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               📍 T16-33, Vinhomes Grand Park, TP. Thủ Đức
             </div>
           </div>
-          <div className="text-right text-[11.5px] text-gray-500">
+
+          <div className="flex flex-wrap items-center justify-center gap-3 text-[11.5px] font-semibold text-emerald-800">
+            <button onClick={() => setPolicyModal('privacy')} className="hover:text-emerald-950 hover:underline cursor-pointer">Bảo mật</button>
+            <span className="text-gray-300">•</span>
+            <button onClick={() => setPolicyModal('attendance')} className="hover:text-emerald-950 hover:underline cursor-pointer">Quy chế chấm công</button>
+            <span className="text-gray-300">•</span>
+            <button onClick={() => setPolicyModal('cookie')} className="hover:text-emerald-950 hover:underline cursor-pointer">Cookie</button>
+            <span className="text-gray-300">•</span>
+            <button onClick={() => setPolicyModal('support')} className="hover:text-emerald-950 hover:underline cursor-pointer">Hỗ trợ</button>
+          </div>
+
+          <div className="text-center md:text-right text-[11.5px] text-gray-500">
             Thiết kế &amp; Phát triển: <a href="mailto:vietthanhnguyen.tsen@gmail.com" className="text-[#2e8b57] font-semibold hover:underline">Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)</a>
           </div>
         </footer>
+
+        {/* Policy Modals */}
+        <PolicyModals activePolicy={policyModal} onClose={() => setPolicyModal(null)} />
       </main>
     </div>
   );
