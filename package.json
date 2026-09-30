@@ -1,0 +1,53 @@
+{
+  "name": "cham-cong-lumi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hệ thống chấm công giáo viên Trường Mầm Non Lumi Preschool",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [
+    "attendance",
+    "lumi",
+    "preschool",
+    "nextjs"
+  ],
+  "author": "Lumi Preschool",
+  "license": "MIT",
+  "packageManager": "pnpm@12.8.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "unrs-resolver"
+    ]
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.2",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "lucide-react": "^1.48.0",
+    "next": "^14.2.35",
+    "next-auth": "^4.24.15",
+    "postcss": "^8.5.28",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "recharts": "^3.10.1",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.6.3",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/bcryptjs": "^3.0.0",
+    "eslint": "^10.11.0",
+    "eslint-config-next": "^16.3.7"
+  }
+}
