@@ -67,8 +67,8 @@ export default function SheetsSyncPage() {
     <div className="space-y-6">
       {/* Status Card */}
       <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200 p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <span>🔄</span> Kết nối Google Sheets
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
+          Kết nối Google Sheets
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -99,13 +99,12 @@ export default function SheetsSyncPage() {
 
         {message && (
           <div
-            className={`p-4 rounded-lg mb-6 text-sm flex items-center gap-2 ${
+            className={`p-4 rounded-lg mb-6 text-sm ${
               message.type === 'success'
                 ? 'bg-green-50 text-green-800 border border-green-200'
                 : 'bg-red-50 text-red-800 border border-red-200'
             }`}
           >
-            <span>{message.type === 'success' ? '✅' : '❌'}</span>
             <span>{message.text}</span>
           </div>
         )}
@@ -123,9 +122,9 @@ export default function SheetsSyncPage() {
           <button
             onClick={handleSyncNow}
             disabled={syncing}
-            className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow transition-colors flex items-center justify-center disabled:opacity-50"
           >
-            {syncing ? 'Đang đồng bộ...' : '🚀 Đồng bộ sang Google Sheets ngay'}
+            {syncing ? 'Đang đồng bộ...' : 'Đồng bộ sang Google Sheets'}
           </button>
         </div>
       </div>

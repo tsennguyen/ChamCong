@@ -63,19 +63,18 @@ export default function SettingsPage() {
   return (
     <div className="max-w-3xl">
       <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200 p-6 md:p-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <span>⚙️</span> Cài đặt Hệ thống Lumi Preschool
+        <h2 className="text-lg font-bold text-gray-900 mb-6">
+          Cài đặt hệ thống
         </h2>
 
         {message && (
           <div
-            className={`p-4 rounded-lg mb-6 text-sm flex items-center gap-2 ${
+            className={`p-4 rounded-lg mb-6 text-sm ${
               message.type === 'success'
                 ? 'bg-green-50 text-green-800 border border-green-200'
                 : 'bg-red-50 text-red-800 border border-red-200'
             }`}
           >
-            <span>{message.type === 'success' ? '✅' : '❌'}</span>
             <span>{message.text}</span>
           </div>
         )}
@@ -149,7 +148,7 @@ export default function SettingsPage() {
               disabled={saving}
               className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow transition-colors disabled:opacity-50"
             >
-              {saving ? 'Đang lưu...' : '💾 Lưu thay đổi'}
+              {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
             </button>
           </div>
         </form>

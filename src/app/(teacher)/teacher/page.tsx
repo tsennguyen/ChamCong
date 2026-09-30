@@ -136,7 +136,7 @@ export default function TeacherPage() {
       <main className="max-w-[800px] w-full mx-auto px-4 py-4 flex flex-col gap-5 flex-1">
         {/* Section 1: Check-in/out */}
         <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0] border-l-[5px] border-l-[#2e8b57]">
-          <h2 className="text-base font-bold text-[#2e8b57] flex items-center gap-2 mb-4">📋 ĐIỂM DANH</h2>
+          <h2 className="text-base font-bold text-[#2e8b57] mb-4">Điểm danh</h2>
 
           <div className="mb-3.5">
             <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Chọn ca làm việc</label>
@@ -152,8 +152,8 @@ export default function TeacherPage() {
 
           {/* WiFi status */}
           <div className={`flex items-center gap-2 text-[13.5px] font-medium px-3 py-2 rounded-lg mb-4 ${wifiOk ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' : 'bg-amber-50 text-amber-800 border border-amber-300'}`}>
-            <span>{wifiOk ? '✅' : '⚠️'}</span>
-            <span>{wifiOk ? `Đã kết nối WiFi trường` : 'Vui lòng kết nối WiFi trường để chấm công'}</span>
+            <span className={`w-2 h-2 rounded-full ${wifiOk ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            <span>{wifiOk ? `Đã kết nối mạng trường học` : 'Vui lòng kết nối mạng trường để chấm công'}</span>
           </div>
 
           {/* Buttons */}
@@ -163,14 +163,14 @@ export default function TeacherPage() {
               disabled={loading || isCheckedIn}
               className="h-12 bg-[#2e8b57] hover:brightness-[0.92] active:scale-[0.99] text-white rounded-[10px] text-[15px] font-bold flex items-center justify-center gap-2 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              🟢 CHECK-IN
+              Check-in
             </button>
             <button
               onClick={handleCheckout}
               disabled={loading || !isCheckedIn || isCheckedOut}
               className="h-12 bg-red-600 hover:brightness-[0.92] active:scale-[0.99] text-white rounded-[10px] text-[15px] font-bold flex items-center justify-center gap-2 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              🔴 CHECK-OUT
+              Check-out
             </button>
           </div>
 
@@ -178,7 +178,6 @@ export default function TeacherPage() {
           {result && (
             <div className={`rounded-lg px-3.5 py-3 text-sm flex items-center justify-between flex-wrap gap-2 ${result.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-700'}`}>
               <div className="flex items-center gap-2">
-                <span className="text-lg">{result.type === 'success' ? '✅' : '❌'}</span>
                 <span>{result.message}</span>
               </div>
               {result.time && <span className="bg-[#2e8b57] text-white font-bold text-[13px] px-2.5 py-0.5 rounded-full">{result.time}</span>}
@@ -188,7 +187,7 @@ export default function TeacherPage() {
 
         {/* Section 2: Regular stats */}
         <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
-          <h2 className="text-base font-bold text-gray-800 flex items-center gap-2 mb-3">📊 THỐNG KÊ CA CHÍNH HÔM NAY ({todayFormatted})</h2>
+          <h2 className="text-base font-bold text-gray-800 mb-3">Thống kê ca chính hôm nay ({todayFormatted})</h2>
           <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
             <table className="w-full min-w-[580px] border-collapse text-[13.5px] text-left">
               <thead>
@@ -235,7 +234,7 @@ export default function TeacherPage() {
 
         {/* Section 3: Extra stats */}
         <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
-          <h2 className="text-base font-bold text-gray-800 flex items-center gap-2 mb-3">📊 THỐNG KÊ CA NGOÀI GIỜ HÔM NAY ({todayFormatted})</h2>
+          <h2 className="text-base font-bold text-gray-800 mb-3">Thống kê ca ngoài giờ hôm nay ({todayFormatted})</h2>
           <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
             <table className="w-full min-w-[480px] border-collapse text-[13.5px] text-left">
               <thead>
@@ -273,15 +272,15 @@ export default function TeacherPage() {
             onClick={() => setGuideOpen(!guideOpen)}
             className="w-full px-5 py-4 font-bold text-[15px] text-[#2e8b57] cursor-pointer flex items-center justify-between bg-transparent border-none"
           >
-            <span>📖 HƯỚNG DẪN SỬ DỤNG</span>
+            <span>Hướng dẫn sử dụng</span>
             <span className={`text-gray-400 text-xs transition-transform ${guideOpen ? 'rotate-180' : ''}`}>▼</span>
           </button>
           {guideOpen && (
             <div className="px-5 pb-5 border-t border-dashed border-gray-200 pt-3.5">
               {[
                 { n: '1', title: 'Kết nối WiFi trường:', desc: 'Đảm bảo thiết bị đã kết nối vào mạng WiFi nội bộ của cơ sở Lumi Preschool.' },
-                { n: '2', title: 'Chọn ca & Check-in:', desc: 'Lựa chọn ca làm việc, sau đó nhấn nút 🟢 CHECK-IN khi vừa đến lớp.' },
-                { n: '3', title: 'Cuối ca & Check-out:', desc: 'Sau khi hoàn tất bàn giao, bấm 🔴 CHECK-OUT để hệ thống ghi nhận.' },
+                { n: '2', title: 'Chọn ca & Check-in:', desc: 'Lựa chọn ca làm việc, sau đó nhấn nút Check-in khi vừa đến lớp.' },
+                { n: '3', title: 'Cuối ca & Check-out:', desc: 'Sau khi hoàn tất bàn giao, bấm Check-out để hệ thống ghi nhận.' },
               ].map(s => (
                 <div key={s.n} className="flex items-start gap-3 mb-3 text-sm text-gray-600">
                   <span className="w-6 h-6 bg-[#e8f5e9] text-[#2e8b57] rounded-full flex items-center justify-center text-xs font-bold shrink-0">{s.n}</span>

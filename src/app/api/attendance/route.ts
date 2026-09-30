@@ -147,8 +147,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: shift.type === 'regular'
-        ? `${greeting} ✅ Điểm danh ca ${shift.name} ngày ${today}`
-        : `${greeting} ✅ Điểm danh ca ngoài giờ ngày ${today}`,
+        ? `${greeting}! Điểm danh ca ${shift.name} ngày ${today}`
+        : `${greeting}! Điểm danh ca ngoài giờ ngày ${today}`,
       data: {
         attendance: record,
         greeting,
@@ -254,7 +254,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `${greeting} ✅ Check-out thành công!`,
+      message: `${greeting}! Check-out thành công.`,
       data: {
         attendance: updated,
         greeting,

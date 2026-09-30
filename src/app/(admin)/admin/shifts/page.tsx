@@ -79,8 +79,8 @@ export default function ShiftsPage() {
     <>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <p className="text-sm text-gray-500">Tổng: {shifts.length} ca làm việc</p>
-        <button onClick={openCreate} className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 shadow transition-colors">
-          ➕ Thêm ca
+        <button onClick={openCreate} className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow transition-colors">
+          Thêm ca
         </button>
       </div>
 
@@ -133,7 +133,7 @@ export default function ShiftsPage() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setModalOpen(false)}>
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900">{editId ? '✏️ Sửa ca' : '➕ Thêm ca mới'}</h3>
+              <h3 className="text-lg font-bold text-gray-900">{editId ? 'Sửa ca làm việc' : 'Thêm ca làm việc'}</h3>
               <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl bg-transparent border-none cursor-pointer">✕</button>
             </div>
             <div className="px-6 py-5 flex flex-col gap-4">

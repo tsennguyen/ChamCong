@@ -25,7 +25,7 @@ async function seed() {
   console.log('🌱 Seeding database...\n');
 
   // 1. Tạo admin account
-  const adminPassword = 'admin123';
+  const adminPassword = 'Lumi@Preschool2026';
   const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
   const { data: admin, error: adminErr } = await supabase

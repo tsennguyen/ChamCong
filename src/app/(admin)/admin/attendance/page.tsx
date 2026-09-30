@@ -35,19 +35,16 @@ export default function AttendancePage() {
 
   const statusBadge = (s: string) => {
     switch (s) {
-      case 'checked_out': return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold bg-green-100 text-green-700">● Đã check-out</span>;
-      case 'checked_in': return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold bg-blue-100 text-blue-700">● Đã check-in</span>;
-      case 'needs_review': return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold bg-yellow-100 text-yellow-700">⚠️ Cần xác nhận</span>;
-      default: return <span className="text-gray-400">{s}</span>;
+      case 'checked_out': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">Đã check-out</span>;
+      case 'checked_in': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Đã check-in</span>;
+      case 'needs_review': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Cần xác nhận</span>;
+      default: return <span className="text-gray-400 text-xs">{s}</span>;
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Xóa bản ghi này?')) return;
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      // Use API route instead for proper auth
       await fetch(`/api/attendance?id=${id}`, { method: 'DELETE' });
       fetchData();
     } catch { /* ignore */ }
@@ -66,7 +63,7 @@ export default function AttendancePage() {
             className="h-10 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none focus:border-[#2e8b57]"
           />
           <button onClick={fetchData} className="bg-[#2e8b57] text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-[#246e45] transition-colors">
-            🔄 Tải lại
+            Tải lại
           </button>
         </div>
         <p className="text-sm text-gray-500">{records.length} bản ghi — {fmtDate(selectedDate)}</p>

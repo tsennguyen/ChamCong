@@ -90,9 +90,9 @@ export default function TeachersPage() {
         </div>
         <button
           onClick={openCreate}
-          className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 shadow transition-colors"
+          className="bg-[#2e8b57] hover:bg-[#246e45] text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow transition-colors"
         >
-          ➕ Thêm giáo viên
+          Thêm giáo viên
         </button>
       </div>
 
@@ -146,7 +146,7 @@ export default function TeachersPage() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setModalOpen(false)}>
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900">{editId ? '✏️ Sửa giáo viên' : '➕ Thêm giáo viên mới'}</h3>
+              <h3 className="text-lg font-bold text-gray-900">{editId ? 'Sửa thông tin giáo viên' : 'Thêm giáo viên mới'}</h3>
               <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl bg-transparent border-none cursor-pointer">✕</button>
             </div>
 

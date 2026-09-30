@@ -53,10 +53,10 @@ export default function AdminDashboard() {
   const totalOTMinutes = records.reduce((sum, r) => sum + (r.overtime_minutes || 0), 0);
 
   const stats: StatCard[] = [
-    { icon: '👩‍🏫', label: 'Đã chấm công', value: `${totalTeachers}`, footnote: 'Giáo viên check-in hôm nay', color: 'green' },
-    { icon: '✅', label: 'Đã check-out', value: `${checkedOut}/${totalTeachers}`, footnote: `Tỷ lệ ${totalTeachers > 0 ? Math.round(checkedOut / totalTeachers * 100) : 0}%`, color: 'green' },
-    { icon: '⏰', label: 'Đi trễ hôm nay', value: lateCount, footnote: 'Ghi nhận trễ ca chính', color: 'red' },
-    { icon: '💰', label: 'Tăng ca hôm nay', value: `${totalOTMinutes} phút`, footnote: `≈ ${new Intl.NumberFormat('vi-VN').format(records.reduce((s, r) => s + (r.overtime_amount || 0), 0))}đ`, color: 'blue' },
+    { icon: '', label: 'Đã chấm công', value: `${totalTeachers}`, footnote: 'Giáo viên check-in hôm nay', color: 'green' },
+    { icon: '', label: 'Đã check-out', value: `${checkedOut}/${totalTeachers}`, footnote: `Tỷ lệ ${totalTeachers > 0 ? Math.round(checkedOut / totalTeachers * 100) : 0}%`, color: 'green' },
+    { icon: '', label: 'Đi trễ hôm nay', value: lateCount, footnote: 'Ghi nhận trễ ca chính', color: 'red' },
+    { icon: '', label: 'Tăng ca hôm nay', value: `${totalOTMinutes} phút`, footnote: `≈ ${new Intl.NumberFormat('vi-VN').format(records.reduce((s, r) => s + (r.overtime_amount || 0), 0))}đ`, color: 'blue' },
   ];
 
   const colorMap = { green: 'text-[#2e8b57]', red: 'text-red-600', blue: 'text-blue-600' };
@@ -65,21 +65,21 @@ export default function AdminDashboard() {
 
   const statusBadge = (s: string) => {
     switch (s) {
-      case 'checked_out': return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold bg-green-100 text-green-700">● Đã check-out</span>;
-      case 'checked_in': return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold bg-blue-100 text-blue-700">● Đã check-in</span>;
-      case 'needs_review': return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold bg-yellow-100 text-yellow-700">⚠️ Cần xác nhận</span>;
-      default: return <span className="text-gray-400">{s}</span>;
+      case 'checked_out': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">Đã check-out</span>;
+      case 'checked_in': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Đã check-in</span>;
+      case 'needs_review': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Cần xác nhận</span>;
+      default: return <span className="text-gray-400 text-xs">{s}</span>;
     }
   };
 
   return (
     <>
       {/* Stats Cards */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s, i) => (
-          <div key={i} className="bg-white rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200 flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-gray-600 text-sm font-semibold">
-              <span>{s.icon}</span><span>{s.label}</span>
+          <div key={i} className="bg-white rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200 flex flex-col gap-1.5">
+            <div className="text-gray-500 text-xs font-semibold uppercase tracking-wide">
+              {s.label}
             </div>
             <div className={`text-3xl font-extrabold leading-tight mt-1 ${colorMap[s.color]}`}>{s.value}</div>
             <div className="text-xs text-gray-400">{s.footnote}</div>

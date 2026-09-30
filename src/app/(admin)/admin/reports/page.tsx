@@ -87,15 +87,15 @@ export default function ReportsPage() {
             onClick={fetchReport}
             className="bg-[#2e8b57] text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-[#246e45] transition-colors"
           >
-            🔄 Xem
+            Xem
           </button>
         </div>
         <button
           onClick={handleExportCSV}
           disabled={report.length === 0}
-          className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50"
+          className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
         >
-          📥 Xuất file CSV (Excel)
+          Xuất file CSV (Excel)
         </button>
       </div>
 
