@@ -53,7 +53,7 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { email, full_name, gender, phone, is_active, password, shift_ids } = body;
+    const { email, full_name, gender, phone, is_active, password, shift_ids, role } = body;
 
     const supabase = createAdminClient();
     const updateData: Record<string, any> = {
@@ -64,6 +64,7 @@ export async function PUT(
     if (full_name !== undefined) updateData.full_name = full_name.trim();
     if (gender !== undefined) updateData.gender = gender;
     if (phone !== undefined) updateData.phone = phone ? phone.trim() : null;
+    if (role !== undefined) updateData.role = role;
     if (is_active !== undefined) updateData.is_active = is_active;
 
     if (password && password.trim().length >= 6) {

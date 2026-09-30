@@ -14,16 +14,9 @@ interface TodayRecord {
   id: string; user_id: string; shift_id: string; attendance_date: string;
   check_in_time: string | null; check_out_time: string | null;
   late_minutes: number; overtime_minutes: number; status: string;
-  check_in_note: string | null; shift_type: string;
+  check_in_note: string | null; check_out_note?: string | null; shift_type: string;
   user?: { id: string; full_name: string; gender: string };
   shift?: { id: string; name: string; type: string; start_time: string; end_time: string };
-}
-interface ExtraRecord {
-  id: string; user_id: string; session_date: string;
-  planned_start: string; planned_end: string;
-  actual_check_in: string | null; actual_check_out: string | null;
-  note: string | null;
-  user?: { id: string; full_name: string; gender: string };
 }
 
 export default function TeacherPage() {
@@ -34,7 +27,7 @@ export default function TeacherPage() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [selectedShift, setSelectedShift] = useState('');
   const [regular, setRegular] = useState<TodayRecord[]>([]);
-  const [extra, setExtra] = useState<ExtraRecord[]>([]);
+  const [extra, setExtra] = useState<TodayRecord[]>([]);
   const [result, setResult] = useState<{ type: 'success' | 'error'; message: string; time?: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -66,7 +59,7 @@ export default function TeacherPage() {
 
   useEffect(() => { fetchToday(); const iv = setInterval(fetchToday, 15000); return () => clearInterval(iv); }, [fetchToday]);
 
-  const myRecord = regular.find(r => r.user_id === user?.id && r.shift_id === selectedShift);
+  const myRecord = [...regular, ...extra].find(r => r.user_id === user?.id && r.shift_id === selectedShift);
   const isCheckedIn = !!myRecord;
   const isCheckedOut = isCheckedIn && myRecord.status === 'checked_out';
 
@@ -196,13 +189,47 @@ export default function TeacherPage() {
             </button>
           </div>
 
-          {/* Result */}
+          {/* Result Alert Toast */}
           {result && (
-            <div className={`rounded-lg px-3.5 py-3 text-sm flex items-center justify-between flex-wrap gap-2 ${result.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-700'}`}>
-              <div className="flex items-center gap-2">
-                <span>{result.message}</span>
+            <div className={`relative overflow-hidden rounded-xl p-4 border transition-all shadow-sm ${
+              result.type === 'success' 
+                ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300 text-emerald-900' 
+                : 'bg-gradient-to-r from-rose-50 to-red-50 border-rose-300 text-rose-900'
+            }`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                    result.type === 'success' ? 'bg-[#2e8b57] text-white shadow-sm' : 'bg-rose-500 text-white shadow-sm'
+                  }`}>
+                    {result.type === 'success' ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-[15px] mb-0.5">
+                      {result.type === 'success' ? 'Điểm danh thành công' : 'Chưa thể thực hiện'}
+                    </h4>
+                    <p className="text-[13.5px] leading-relaxed opacity-95">
+                      {result.message}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {result.time && (
+                    <span className="bg-[#2e8b57] text-white font-bold text-xs px-2.5 py-1 rounded-md shadow-sm">
+                      {result.time}
+                    </span>
+                  )}
+                  <button 
+                    onClick={() => setResult(null)} 
+                    className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-black/5 transition-colors cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-              {result.time && <span className="bg-[#2e8b57] text-white font-bold text-[13px] px-2.5 py-0.5 rounded-full">{result.time}</span>}
             </div>
           )}
         </section>
@@ -229,6 +256,7 @@ export default function TeacherPage() {
                 )}
                 {regular.map((r, i) => {
                   const isMe = r.user_id === user?.id;
+                  const noteText = r.check_out_note || (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '—');
                   return (
                     <tr key={r.id} className={`${isMe ? 'bg-green-50 font-semibold' : ''} hover:bg-slate-50`}>
                       <td className="px-3 py-2.5 border-b border-slate-100 whitespace-nowrap">{i + 1}</td>
@@ -244,7 +272,9 @@ export default function TeacherPage() {
                         {r.overtime_minutes > 0 ? <span className="text-blue-600 font-bold bg-blue-100 px-1.5 py-0.5 rounded-md">+{r.overtime_minutes}</span> : '0'}
                       </td>
                       <td className="px-3 py-2.5 border-b border-slate-100 whitespace-nowrap">
-                        {r.late_minutes > 0 ? <span className="text-red-600 font-bold bg-red-100 px-1.5 py-0.5 rounded-md">Trễ {r.late_minutes} phút</span> : '—'}
+                        <span className={r.check_out_note?.includes('Không đủ') || r.late_minutes > 0 ? 'text-amber-700' : 'text-gray-700'}>
+                          {noteText}
+                        </span>
                       </td>
                     </tr>
                   );
@@ -258,7 +288,7 @@ export default function TeacherPage() {
         <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
           <h2 className="text-base font-bold text-gray-800 mb-3">Thống kê ca ngoài giờ hôm nay ({todayFormatted})</h2>
           <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
-            <table className="w-full min-w-[480px] border-collapse text-[13.5px] text-left">
+            <table className="w-full min-w-[520px] border-collapse text-[13.5px] text-left">
               <thead>
                 <tr>
                   <th className="bg-slate-50 text-slate-600 font-semibold px-3 py-2.5 border-b-[1.5px] border-slate-200 w-9">#</th>
@@ -273,16 +303,31 @@ export default function TeacherPage() {
                 {extra.length === 0 && (
                   <tr><td colSpan={6} className="text-center py-8 text-gray-400">Chưa có ca ngoài giờ hôm nay</td></tr>
                 )}
-                {extra.map((r, i) => (
-                  <tr key={r.id} className="hover:bg-slate-50">
-                    <td className="px-3 py-2.5 border-b border-slate-100">{i + 1}</td>
-                    <td className="px-3 py-2.5 border-b border-slate-100">{getTitle(r.user?.gender)} {r.user?.full_name?.split(' ').pop()}</td>
-                    <td className="px-3 py-2.5 border-b border-slate-100">{r.planned_start} - {r.planned_end}</td>
-                    <td className="px-3 py-2.5 border-b border-slate-100">{fmtTime(r.actual_check_in)}</td>
-                    <td className="px-3 py-2.5 border-b border-slate-100">{fmtTime(r.actual_check_out)}</td>
-                    <td className="px-3 py-2.5 border-b border-slate-100">{r.note || '—'}</td>
-                  </tr>
-                ))}
+                {extra.map((r, i) => {
+                  const isMe = r.user_id === user?.id;
+                  const shiftLabel = r.shift?.name || (r.shift ? `${r.shift.start_time.slice(0, 5)} - ${r.shift.end_time.slice(0, 5)}` : 'Ngoài giờ');
+                  const noteText = r.check_out_note || (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '—');
+                  return (
+                    <tr key={r.id} className={`${isMe ? 'bg-purple-50 font-semibold' : ''} hover:bg-slate-50`}>
+                      <td className="px-3 py-2.5 border-b border-slate-100">{i + 1}</td>
+                      <td className="px-3 py-2.5 border-b border-slate-100">
+                        <strong>{getTitle(r.user?.gender)} {r.user?.full_name?.split(' ').pop()}{isMe ? ' (Bạn)' : ''}</strong>
+                      </td>
+                      <td className="px-3 py-2.5 border-b border-slate-100">
+                        <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                          {shiftLabel}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 border-b border-slate-100">{fmtTime(r.check_in_time)}</td>
+                      <td className="px-3 py-2.5 border-b border-slate-100">{fmtTime(r.check_out_time)}</td>
+                      <td className="px-3 py-2.5 border-b border-slate-100">
+                        <span className={r.check_out_note?.includes('Không đủ') || r.late_minutes > 0 ? 'text-amber-700' : 'text-gray-700'}>
+                          {noteText}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

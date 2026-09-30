@@ -24,8 +24,8 @@ export async function GET(req: Request) {
     const isNetworkAllowed = checkIPWhitelist(clientIP, allowedRange);
     const wifiSSID = configMap.wifi_ssid || 'WiFi trường học';
 
-    // Lấy attendance ca hành chính
-    const { data: regular, error: regErr } = await supabase
+    // Lấy toàn bộ records hôm nay
+    const { data: records, error: recErr } = await supabase
       .from('attendance_records')
       .select(`
         *,
@@ -35,20 +35,19 @@ export async function GET(req: Request) {
       .eq('attendance_date', today)
       .order('check_in_time', { ascending: true });
 
-    if (regErr) throw regErr;
+    if (recErr) throw recErr;
 
-    // Lấy ca ngoài giờ
-    const { data: extra, error: extErr } = await supabase
-      .from('extra_sessions')
-      .select(`*, user:users(id, full_name, gender)`)
-      .eq('session_date', today)
-      .order('planned_start', { ascending: true });
-
-    if (extErr) throw extErr;
+    const allRecords = (records || []) as Array<any>;
+    const regular = allRecords.filter(
+      (r) => r.shift_type === 'regular' || (!r.shift_type && r.shift?.type === 'regular')
+    );
+    const extra = allRecords.filter(
+      (r) => r.shift_type === 'extra' || (!r.shift_type && r.shift?.type === 'extra')
+    );
 
     return NextResponse.json({
-      regular: regular || [],
-      extra: extra || [],
+      regular,
+      extra,
       network: {
         allowed: isNetworkAllowed,
         client_ip: clientIP,

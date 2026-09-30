@@ -59,8 +59,11 @@ export async function PUT(
     if (grace_minutes !== undefined) {
       updateData.grace_minutes = parseInt(String(grace_minutes), 10) || 1;
     }
-    if (overtime_rate !== undefined) {
-      updateData.overtime_rate = parseInt(String(overtime_rate), 10) || 40000;
+    if (type === 'extra') {
+      updateData.overtime_rate = 0;
+    } else if (overtime_rate !== undefined) {
+      const parsed = parseInt(String(overtime_rate), 10);
+      updateData.overtime_rate = isNaN(parsed) ? 40000 : parsed;
     }
     if (is_active !== undefined) updateData.is_active = is_active;
 

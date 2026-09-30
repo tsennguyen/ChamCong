@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { requireAdmin } from '@/lib/auth-check';
 import { createAdminClient } from '@/lib/supabase/server';
-import { calculateOnCheckin, calculateOnCheckout, calculateOvertimeAmount } from '@/lib/attendance-calc';
+import { calculateOnCheckin, calculateOnCheckout, calculateOvertimeAmount, generateAttendanceNote } from '@/lib/attendance-calc';
 import { getGreeting } from '@/lib/greeting';
 import { getTodayString, formatTimeWithSeconds } from '@/lib/utils';
 import { performFraudCheck, getClientIP } from '@/lib/anti-fraud';
@@ -114,6 +114,9 @@ export async function POST(req: Request) {
 
     const now = new Date();
     const { late_minutes } = calculateOnCheckin(now, shift);
+    const inNote = late_minutes > 0
+      ? (note ? `Trễ ${late_minutes}p • ${note}` : `Trễ ${late_minutes}p`)
+      : (note || 'Đúng giờ');
 
     // Ghi attendance
     const { data: record, error: insertErr } = await supabase
@@ -128,7 +131,7 @@ export async function POST(req: Request) {
         shift_type: shift.type,
         check_in_ip: clientIP,
         check_in_device: device_fingerprint || null,
-        check_in_note: note || null,
+        check_in_note: inNote,
       })
       .select()
       .single();
@@ -228,18 +231,31 @@ export async function PUT(req: Request) {
 
     const now = new Date();
     const shift = record.shift;
-    const { overtime_minutes, overtime_amount } = calculateOnCheckout(now, shift);
+    const checkInDate = record.check_in_time ? new Date(record.check_in_time) : now;
+
+    const {
+      note: autoNote,
+      earlyMinutes,
+      overtimeMinutes,
+      overtimeAmount,
+    } = generateAttendanceNote({
+      shift,
+      checkInTime: checkInDate,
+      checkOutTime: now,
+      lateMinutes: record.late_minutes || 0,
+      userNote: note,
+    });
 
     const { data: updated, error: updateErr } = await supabase
       .from('attendance_records')
       .update({
         check_out_time: now.toISOString(),
-        overtime_minutes,
-        overtime_amount,
+        overtime_minutes: overtimeMinutes,
+        overtime_amount: overtimeAmount,
         status: 'checked_out',
         check_out_ip: clientIP,
         check_out_device: device_fingerprint || null,
-        check_out_note: note || null,
+        check_out_note: autoNote,
       })
       .eq('id', attendance_id)
       .select()
@@ -261,7 +277,7 @@ export async function PUT(req: Request) {
       action: 'check_out',
       ip_address: clientIP,
       device_fingerprint,
-      metadata: { attendance_id, overtime_minutes, overtime_amount },
+      metadata: { attendance_id, overtime_minutes: overtimeMinutes, overtime_amount: overtimeAmount, early_minutes: earlyMinutes },
       is_success: true,
     });
 
@@ -272,21 +288,23 @@ export async function PUT(req: Request) {
       check_out_time: formatTimeWithSeconds(now),
       shift_name: shift.name,
       shift_type: shift.type,
-      overtime_minutes,
-      overtime_amount,
-      note,
+      overtime_minutes: overtimeMinutes,
+      overtime_amount: overtimeAmount,
+      note: autoNote,
     }).catch(() => {});
 
     const greeting = getGreeting(userGender, userName);
 
     return NextResponse.json({
       success: true,
-      message: `${greeting}! Check-out thành công.`,
+      message: `${greeting}! Check-out thành công. (${autoNote})`,
       data: {
         attendance: updated,
         greeting,
-        overtime_minutes,
-        overtime_amount,
+        overtime_minutes: overtimeMinutes,
+        overtime_amount: overtimeAmount,
+        early_minutes: earlyMinutes,
+        note: autoNote,
       },
     });
   } catch (error: unknown) {

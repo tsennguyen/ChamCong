@@ -52,11 +52,12 @@ export default function ShiftsPage() {
     try {
       const url = editId ? `/api/shifts/${editId}` : '/api/shifts';
       const method = editId ? 'PUT' : 'POST';
+      const isExtra = form.type === 'extra';
       const body = {
         name: form.name, type: form.type,
         start_time: form.start_time, end_time: form.end_time,
         grace_minutes: parseInt(form.grace_minutes) || 1,
-        overtime_rate: parseInt(form.overtime_rate) || 40000,
+        overtime_rate: isExtra ? 0 : (parseInt(form.overtime_rate) || 40000),
       };
 
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -114,7 +115,9 @@ export default function ShiftsPage() {
                   <td className="px-4 py-3 border-b border-slate-100">{s.start_time.slice(0, 5)}</td>
                   <td className="px-4 py-3 border-b border-slate-100">{s.end_time.slice(0, 5)}</td>
                   <td className="px-4 py-3 border-b border-slate-100">{s.grace_minutes} phút</td>
-                  <td className="px-4 py-3 border-b border-slate-100">{fmtRate(s.overtime_rate)}</td>
+                  <td className="px-4 py-3 border-b border-slate-100">
+                    {s.type === 'regular' ? fmtRate(s.overtime_rate) : <span className="text-gray-400">Không áp dụng</span>}
+                  </td>
                   <td className="px-4 py-3 border-b border-slate-100 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <button onClick={() => openEdit(s)} className="px-2.5 py-1 rounded-md text-[12.5px] font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer">Sửa</button>
@@ -163,18 +166,31 @@ export default function ShiftsPage() {
                     className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none focus:border-[#2e8b57]" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Grace (phút)</label>
-                  <input type="number" value={form.grace_minutes} onChange={e => setForm({ ...form, grace_minutes: e.target.value })}
-                    className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none focus:border-[#2e8b57]" />
+              {form.type === 'regular' ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Grace (phút)</label>
+                    <input type="number" value={form.grace_minutes} onChange={e => setForm({ ...form, grace_minutes: e.target.value })}
+                      className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none focus:border-[#2e8b57]" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Tăng ca (đ/h)</label>
+                    <input type="number" value={form.overtime_rate} onChange={e => setForm({ ...form, overtime_rate: e.target.value })}
+                      className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none focus:border-[#2e8b57]" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tăng ca (đ/h)</label>
-                  <input type="number" value={form.overtime_rate} onChange={e => setForm({ ...form, overtime_rate: e.target.value })}
-                    className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none focus:border-[#2e8b57]" />
+              ) : (
+                <div className="grid grid-cols-2 gap-3 items-center">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Grace (phút)</label>
+                    <input type="number" value={form.grace_minutes} onChange={e => setForm({ ...form, grace_minutes: e.target.value })}
+                      className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none focus:border-[#2e8b57]" />
+                  </div>
+                  <div className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-lg border border-gray-200 mt-5">
+                    Ca ngoài giờ: <strong>Không tính tiền tăng ca (0đ)</strong>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
               <button onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 cursor-pointer">Hủy</button>

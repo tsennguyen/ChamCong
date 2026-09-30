@@ -78,12 +78,30 @@ export function calculateOvertimeMinutes(
 }
 
 /**
- * Tính tiền tăng ca
+ * Tính về sớm khi check-out
+ */
+export function calculateEarlyMinutes(
+  checkOutTime: Date,
+  shift: Shift
+): number {
+  const checkOutMinutes = timestampToMinutes(checkOutTime);
+  const shiftEndMinutes = timeToMinutes(shift.end_time);
+
+  if (checkOutMinutes < shiftEndMinutes) {
+    return shiftEndMinutes - checkOutMinutes;
+  }
+
+  return 0;
+}
+
+/**
+ * Tính tiền tăng ca (chỉ ca regular)
  */
 export function calculateOvertimeAmount(
   overtimeMinutes: number,
   overtimeRate: number
 ): number {
+  if (!overtimeRate || overtimeRate <= 0) return 0;
   return Math.round((overtimeMinutes / 60) * overtimeRate);
 }
 
@@ -100,17 +118,90 @@ export function calculateOnCheckin(
 }
 
 /**
+ * Tạo ghi chú thông minh tự động khi check-out
+ */
+export function generateAttendanceNote(params: {
+  shift: Shift;
+  checkInTime: Date;
+  checkOutTime: Date;
+  lateMinutes: number;
+  userNote?: string | null;
+}): {
+  note: string;
+  earlyMinutes: number;
+  overtimeMinutes: number;
+  overtimeAmount: number;
+  durationMinutes: number;
+} {
+  const { shift, checkInTime, checkOutTime, lateMinutes, userNote } = params;
+
+  const isRegular = shift.type === 'regular';
+  const earlyMinutes = calculateEarlyMinutes(checkOutTime, shift);
+  const overtimeMinutes = isRegular ? calculateOvertimeMinutes(checkOutTime, shift) : 0;
+  const overtimeAmount = isRegular ? calculateOvertimeAmount(overtimeMinutes, shift.overtime_rate || 0) : 0;
+
+  // Thời gian thực tế làm việc (phút)
+  const durationMinutes = Math.max(0, Math.round((checkOutTime.getTime() - checkInTime.getTime()) / 60000));
+
+  // Thời lượng chuẩn của ca (phút)
+  const startM = timeToMinutes(shift.start_time);
+  const endM = timeToMinutes(shift.end_time);
+  const shiftDuration = endM >= startM ? (endM - startM) : (24 * 60 - startM + endM);
+
+  const tags: string[] = [];
+
+  // 1. Kiểm tra làm không đủ giờ (dưới 30 phút hoặc dưới 50% ca)
+  if (durationMinutes < 30 || durationMinutes < Math.min(60, shiftDuration * 0.5)) {
+    tags.push(`Không đủ giờ làm (${durationMinutes}p)`);
+  }
+
+  // 2. Đi trễ
+  if (lateMinutes > 0) {
+    tags.push(`Trễ ${lateMinutes}p`);
+  }
+
+  // 3. Về sớm
+  if (earlyMinutes > 0) {
+    tags.push(`Về sớm ${formatMinutes(earlyMinutes)}`);
+  }
+
+  // 4. Tăng ca (chỉ ca chính)
+  if (isRegular && overtimeMinutes > 0) {
+    tags.push(`Tăng ca +${overtimeMinutes}p`);
+  }
+
+  // 5. Nếu không trễ, không sớm, không thiếu giờ
+  if (tags.length === 0) {
+    tags.push('Đủ giờ làm');
+  }
+
+  // 6. Ghi chú cá nhân người dùng nhập (nếu có)
+  if (userNote && userNote.trim()) {
+    tags.push(`(${userNote.trim()})`);
+  }
+
+  return {
+    note: tags.join(' • '),
+    earlyMinutes,
+    overtimeMinutes,
+    overtimeAmount,
+    durationMinutes,
+  };
+}
+
+/**
  * Tính toàn bộ khi check-out
  */
 export function calculateOnCheckout(
   checkOutTime: Date,
   shift: Shift
 ): AttendanceCalcResult {
-  const overtime_minutes = calculateOvertimeMinutes(checkOutTime, shift);
-  const overtime_amount = calculateOvertimeAmount(overtime_minutes, shift.overtime_rate);
+  const isRegular = shift.type === 'regular';
+  const overtime_minutes = isRegular ? calculateOvertimeMinutes(checkOutTime, shift) : 0;
+  const overtime_amount = isRegular ? calculateOvertimeAmount(overtime_minutes, shift.overtime_rate) : 0;
 
   return {
-    late_minutes: 0, // already calculated at check-in
+    late_minutes: 0,
     overtime_minutes,
     overtime_amount,
   };

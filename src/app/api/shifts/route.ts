@@ -56,7 +56,7 @@ export async function POST(req: Request) {
         start_time: start_time.length === 5 ? `${start_time}:00` : start_time,
         end_time: end_time.length === 5 ? `${end_time}:00` : end_time,
         grace_minutes: parseInt(String(grace_minutes), 10) || 1,
-        overtime_rate: parseInt(String(overtime_rate), 10) || 40000,
+        overtime_rate: type === 'extra' ? 0 : (overtime_rate !== undefined && !isNaN(parseInt(String(overtime_rate), 10)) ? parseInt(String(overtime_rate), 10) : 40000),
         is_active: true,
       })
       .select()

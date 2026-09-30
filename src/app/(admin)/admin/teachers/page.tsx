@@ -24,12 +24,12 @@ interface Teacher {
 
 interface TeacherForm {
   email: string; full_name: string; gender: string;
-  phone: string; password: string;
+  phone: string; password: string; role: 'teacher' | 'admin';
   shift_ids: string[];
 }
 
 const emptyForm: TeacherForm = {
-  email: '', full_name: '', gender: 'female', phone: '', password: '',
+  email: '', full_name: '', gender: 'female', phone: '', password: '', role: 'teacher',
   shift_ids: [],
 };
 
@@ -86,6 +86,7 @@ export default function TeachersPage() {
       gender: t.gender,
       phone: t.phone || '',
       password: '',
+      role: (t.role as 'teacher' | 'admin') || 'teacher',
       shift_ids: assignedIds,
     });
     setError('');
@@ -105,6 +106,7 @@ export default function TeachersPage() {
         full_name: form.full_name,
         gender: form.gender,
         phone: form.phone,
+        role: form.role,
         shift_ids: form.shift_ids,
       };
       if (form.password) body.password = form.password;
@@ -162,6 +164,7 @@ export default function TeachersPage() {
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200 w-10">#</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Họ tên</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Email</th>
+                <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Vai trò</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Giới tính</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">SĐT</th>
                 <th className="bg-slate-50 text-slate-600 font-semibold px-4 py-3 border-b-[1.5px] border-slate-200">Ca làm việc</th>
@@ -170,8 +173,8 @@ export default function TeachersPage() {
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={8} className="text-center py-10 text-gray-400">Đang tải...</td></tr>}
-              {!loading && teachers.length === 0 && <tr><td colSpan={8} className="text-center py-10 text-gray-400">Chưa có giáo viên nào</td></tr>}
+              {loading && <tr><td colSpan={9} className="text-center py-10 text-gray-400">Đang tải...</td></tr>}
+              {!loading && teachers.length === 0 && <tr><td colSpan={9} className="text-center py-10 text-gray-400">Chưa có giáo viên nào</td></tr>}
               {teachers.map((t, i) => (
                 <tr key={t.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 border-b border-slate-100">{i + 1}</td>
@@ -179,6 +182,11 @@ export default function TeachersPage() {
                     {t.gender === 'male' ? 'Thầy' : 'Cô'} {t.full_name}
                   </td>
                   <td className="px-4 py-3 border-b border-slate-100">{t.email}</td>
+                  <td className="px-4 py-3 border-b border-slate-100">
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${t.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>
+                      {t.role === 'admin' ? 'Quản trị viên' : 'Giáo viên'}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 border-b border-slate-100">{t.gender === 'male' ? 'Nam' : 'Nữ'}</td>
                   <td className="px-4 py-3 border-b border-slate-100">{t.phone || '—'}</td>
                   <td className="px-4 py-3 border-b border-slate-100">
@@ -242,16 +250,25 @@ export default function TeachersPage() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Giới tính</label>
                   <select value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })}
-                    className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none">
-                    <option value="female">Nữ</option>
-                    <option value="male">Nam</option>
+                    className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none bg-white">
+                    <option value="female">Cô giáo (Nữ)</option>
+                    <option value="male">Thầy giáo (Nam)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">SĐT</label>
-                  <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="0901234567"
-                    className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none focus:border-[#2e8b57] focus:shadow-[0_0_0_3px_rgba(46,139,87,0.15)]" />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Vai trò</label>
+                  <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value as 'teacher' | 'admin' })}
+                    className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none bg-white">
+                    <option value="teacher">Giáo viên</option>
+                    <option value="admin">Quản trị viên (Admin)</option>
+                  </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Số điện thoại</label>
+                <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="0901234567"
+                  className="w-full h-11 px-3 border-[1.5px] border-gray-200 rounded-lg text-sm outline-none focus:border-[#2e8b57] focus:shadow-[0_0_0_3px_rgba(46,139,87,0.15)]" />
               </div>
 
               {/* Ca làm việc */}
