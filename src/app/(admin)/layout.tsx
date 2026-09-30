@@ -139,7 +139,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               LUMI Preschool — Mầm Non Khai Minh
             </div>
             <div className="text-[11px] text-gray-400">
-              📍 T16-33, Vinhomes Grand Park, TP. Thủ Đức
+              T16-33, Vinhomes Grand Park, TP. Thủ Đức
             </div>
           </div>
 
@@ -153,8 +153,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button onClick={() => setPolicyModal('support')} className="hover:text-emerald-950 hover:underline cursor-pointer">Hỗ trợ</button>
           </div>
 
-          <div className="text-center md:text-right text-[11.5px] text-gray-500">
-            Thiết kế &amp; Phát triển: <a href="mailto:vietthanhnguyen.tsen@gmail.com" className="text-[#2e8b57] font-semibold hover:underline">Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)</a>
+          <div className="text-center md:text-right text-sm text-slate-600">
+            Thiết kế &amp; Phát triển:{' '}
+            <a
+              href="mailto:vietthanhnguyen.tsen@gmail.com"
+              className="text-[#2e8b57] font-bold hover:underline"
+            >
+              Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)
+            </a>
           </div>
         </footer>
 

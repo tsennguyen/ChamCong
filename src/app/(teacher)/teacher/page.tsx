@@ -4,7 +4,18 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { KeyRound, CalendarCheck, ChevronDown, ChevronUp, Clock, AlertCircle } from 'lucide-react';
+import {
+  KeyRound,
+  CalendarCheck,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  AlertCircle,
+  LogIn,
+  LogOut,
+  CheckCircle,
+  Sparkles,
+} from 'lucide-react';
 import { useWifiCheck } from '@/hooks/useWifiCheck';
 import { useDeviceFingerprint } from '@/hooks/useDeviceFingerprint';
 import { getGreeting } from '@/lib/greeting';
@@ -30,6 +41,7 @@ export default function TeacherPage() {
 
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [selectedShift, setSelectedShift] = useState('');
+  const [userNote, setUserNote] = useState('');
   const [regular, setRegular] = useState<TodayRecord[]>([]);
   const [extra, setExtra] = useState<TodayRecord[]>([]);
   const [result, setResult] = useState<{ type: 'success' | 'error'; message: string; time?: string } | null>(null);
@@ -113,6 +125,7 @@ export default function TeacherPage() {
   const myRecord = [...regular, ...extra].find(r => r.user_id === user?.id && r.shift_id === selectedShift);
   const isCheckedIn = !!myRecord;
   const isCheckedOut = isCheckedIn && myRecord.status === 'checked_out';
+  const currentShift = shifts.find(s => s.id === selectedShift);
 
   const handleCheckin = async () => {
     if (!selectedShift) return;
@@ -121,19 +134,24 @@ export default function TeacherPage() {
       const res = await fetch('/api/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shift_id: selectedShift, device_fingerprint: fingerprint }),
+        body: JSON.stringify({
+          shift_id: selectedShift,
+          device_fingerprint: fingerprint,
+          note: userNote.trim() || undefined,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
         const time = data.data?.attendance?.check_in_time ? formatTime(data.data.attendance.check_in_time) : '';
         setResult({ type: 'success', message: data.message, time });
+        setUserNote('');
         fetchToday();
         fetchMonthRecords();
         setTimeout(() => { fetchToday(); fetchMonthRecords(); }, 800);
       } else {
         setResult({ type: 'error', message: data.error });
       }
-    } catch { setResult({ type: 'error', message: 'Lỗi kết nối' }); }
+    } catch { setResult({ type: 'error', message: 'Lỗi kết nối máy chủ' }); }
     setLoading(false);
   };
 
@@ -144,19 +162,24 @@ export default function TeacherPage() {
       const res = await fetch('/api/attendance', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attendance_id: myRecord.id, device_fingerprint: fingerprint }),
+        body: JSON.stringify({
+          attendance_id: myRecord.id,
+          device_fingerprint: fingerprint,
+          note: userNote.trim() || undefined,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
         const time = data.data?.attendance?.check_out_time ? formatTime(data.data.attendance.check_out_time) : '';
         setResult({ type: 'success', message: data.message, time });
+        setUserNote('');
         fetchToday();
         fetchMonthRecords();
         setTimeout(() => { fetchToday(); fetchMonthRecords(); }, 800);
       } else {
         setResult({ type: 'error', message: data.error });
       }
-    } catch { setResult({ type: 'error', message: 'Lỗi kết nối' }); }
+    } catch { setResult({ type: 'error', message: 'Lỗi kết nối máy chủ' }); }
     setLoading(false);
   };
 
@@ -167,95 +190,232 @@ export default function TeacherPage() {
     <div className="min-h-screen bg-[#f0f7f0] flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] border-b border-[rgba(46,139,87,0.12)]">
-        <div className="max-w-[800px] mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Image src="/logolumi.jpg" alt="Logo" width={42} height={42} className="rounded-full shadow-[0_2px_6px_rgba(46,139,87,0.2)] object-cover" />
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-[#2e8b57] tracking-tight leading-tight">LUMI Preschool</span>
-              <span className="text-[11px] font-semibold text-gray-500">Mầm Non Khai Minh</span>
+        <div className="max-w-[800px] mx-auto px-3.5 sm:px-4 py-2.5 sm:py-3 flex justify-between items-center gap-2">
+          {/* Logo & School Name */}
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <Image
+              src="/logolumi.jpg"
+              alt="Logo"
+              width={42}
+              height={42}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-[0_2px_6px_rgba(46,139,87,0.2)] object-cover shrink-0"
+            />
+            <div className="flex flex-col min-w-0">
+              <span className="text-base sm:text-lg font-bold text-[#2e8b57] tracking-tight leading-tight truncate">
+                LUMI Preschool
+              </span>
+              <span className="text-[10px] sm:text-[11px] font-semibold text-gray-500 truncate">
+                Mầm Non Khai Minh
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-700 hidden sm:inline">{greeting}</span>
+
+          {/* Right Header: Greeting & Quick Actions */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Greeting badge - PROMINENTLY VISIBLE ON MOBILE */}
+            <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200/90 px-2 sm:px-3 py-1 rounded-full text-xs font-bold shadow-xs max-w-[130px] sm:max-w-none">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
+              <span className="truncate">{greeting || 'Giáo viên'}</span>
+            </div>
+
+            {/* Đổi mật khẩu */}
             <Link
               href="/change-password"
-              className="flex items-center gap-1 border border-gray-200 px-2.5 py-1.5 rounded-lg text-[13px] text-gray-600 hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all"
+              className="flex items-center gap-1 border border-gray-200 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs text-gray-600 hover:text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 transition-all"
               title="Đổi mật khẩu tài khoản"
             >
-              <KeyRound className="w-3.5 h-3.5 text-emerald-600" />
+              <KeyRound className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span className="hidden sm:inline font-medium">Đổi MK</span>
             </Link>
+
+            {/* Thoát */}
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="flex items-center gap-1 border border-gray-200 px-2.5 py-1.5 rounded-lg text-[13px] text-gray-600 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all cursor-pointer"
+              className="flex items-center gap-1 border border-gray-200 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg text-xs text-gray-600 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all cursor-pointer"
+              title="Đăng xuất"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              <span>Thoát</span>
+              <LogOut className="w-3.5 h-3.5 text-gray-500 hover:text-red-500 shrink-0" />
+              <span className="hidden sm:inline font-medium">Thoát</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main */}
-      <main className="max-w-[800px] w-full mx-auto px-4 py-4 flex flex-col gap-5 flex-1">
-        {/* Section 1: Check-in/out */}
-        <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0] border-l-[5px] border-l-[#2e8b57]">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-[#2e8b57]">Điểm danh giáo viên</h2>
+      <main className="max-w-[800px] w-full mx-auto px-3.5 sm:px-4 py-4 flex flex-col gap-4 sm:gap-5 flex-1">
+        {/* Section 1: Check-in/out Hero Card */}
+        <section className="bg-white rounded-[16px] p-4 sm:p-5 shadow-[0_4px_16px_rgba(0,0,0,0.05)] border border-[#eef2f0] border-l-[5px] border-l-[#2e8b57]">
+          {/* Header & Status Indicator */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-[#2e8b57] flex items-center gap-2">
+                <span>Điểm danh giáo viên</span>
+                {isCheckedOut ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full">
+                    <CheckCircle className="w-3 h-3" /> Đã hoàn thành ca
+                  </span>
+                ) : isCheckedIn ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    Đang trong ca
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                    Chưa vào ca
+                  </span>
+                )}
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {currentShift ? `Ca: ${currentShift.name} (${currentShift.start_time} - ${currentShift.end_time})` : 'Chọn ca làm việc'}
+              </p>
+            </div>
+
+            {/* Quick shift status tag */}
+            {isCheckedIn && myRecord && (
+              <div className="text-xs text-gray-600 bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1 self-start sm:self-auto">
+                Vào ca lúc: <strong className="text-emerald-700 font-bold">{fmtTime(myRecord.check_in_time)}</strong>
+                {myRecord.late_minutes > 0 && (
+                  <span className="text-rose-600 font-semibold ml-1">
+                    (Trễ {myRecord.late_minutes}p)
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Realtime Vietnam Clock */}
           <RealtimeClock />
 
+          {/* Shift Selection */}
           <div className="mb-3.5">
-            <label className="block text-[13px] font-semibold text-gray-600 mb-1.5">Chọn ca làm việc</label>
-            <select
-              value={selectedShift}
-              onChange={e => setSelectedShift(e.target.value)}
-              className="w-full h-11 border-[1.5px] border-gray-300 rounded-lg px-3.5 text-[15px] text-gray-900 bg-gray-50 outline-none"
-            >
-              {shifts.length === 0 && <option>Chưa có ca nào</option>}
-              {shifts.map(s => <option key={s.id} value={s.id}>{s.name} ({s.start_time} - {s.end_time})</option>)}
-            </select>
+            <label className="block text-xs sm:text-[13px] font-semibold text-gray-700 mb-1.5 flex items-center justify-between">
+              <span>Lựa chọn ca làm việc</span>
+              <span className="text-[11px] text-gray-400 font-normal">Chạm để đổi ca khác nếu có</span>
+            </label>
+            <div className="relative">
+              <select
+                value={selectedShift}
+                onChange={e => setSelectedShift(e.target.value)}
+                className="w-full h-12 border-[1.5px] border-emerald-600/30 rounded-xl px-3.5 pr-10 text-[14px] sm:text-[15px] font-semibold text-gray-800 bg-emerald-50/20 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all appearance-none cursor-pointer"
+              >
+                {shifts.length === 0 && <option>Chưa có ca nào được phân công</option>}
+                {shifts.map(s => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.start_time} - {s.end_time}) {s.type === 'overtime' ? '• Ngoài giờ' : '• Ca chính'}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-700">
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
           </div>
 
           {/* WiFi status */}
           {network ? (
-            <div className={`flex items-center gap-2.5 text-[13px] font-medium px-3.5 py-2.5 rounded-lg mb-4 ${network.allowed ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' : 'bg-red-50 text-red-700 border border-red-300'}`}>
-              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${network.allowed ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
-              <div className="flex-1">
+            <div className={`flex items-start sm:items-center gap-2.5 text-xs sm:text-[13px] font-medium p-3 sm:px-3.5 sm:py-2.5 rounded-xl mb-3.5 transition-all ${
+              network.allowed 
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' 
+                : 'bg-red-50 text-red-700 border border-red-300'
+            }`}>
+              <span className={`w-2.5 h-2.5 rounded-full shrink-0 mt-0.5 sm:mt-0 ${
+                network.allowed ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'
+              }`} />
+              <div className="flex-1 leading-relaxed">
                 {network.allowed ? (
-                  <span>Đã kết nối đúng mạng trường học <strong>({network.school_ssid})</strong></span>
+                  <span>
+                    Đã kết nối đúng mạng trường: <strong>{network.school_ssid}</strong>. Bạn đã sẵn sàng điểm danh!
+                  </span>
                 ) : (
                   <span>
-                    <strong>Không thể chấm công:</strong> Vui lòng kết nối vào mạng WiFi trường <strong>({network.school_ssid})</strong>. Mạng hiện tại (IP: {network.client_ip}) không được phép.
+                    <strong>Không thể chấm công:</strong> Vui lòng kết nối vào WiFi của trường <strong>({network.school_ssid})</strong>. Mạng hiện tại (IP: {network.client_ip}) không hợp lệ.
                   </span>
                 )}
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-[13px] font-medium px-3 py-2 rounded-lg mb-4 bg-gray-50 text-gray-600 border border-gray-200">
+            <div className="flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-xl mb-3.5 bg-gray-50 text-gray-600 border border-gray-200">
               <span className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" />
-              <span>Đang kiểm tra kết nối mạng trường...</span>
+              <span>Đang kiểm tra WiFi trường học...</span>
             </div>
           )}
 
-          {/* Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <button
-              onClick={handleCheckin}
-              disabled={loading || isCheckedIn || (network !== null && !network.allowed)}
-              className="h-12 bg-[#2e8b57] hover:brightness-[0.92] active:scale-[0.99] text-white rounded-[10px] text-[15px] font-bold flex items-center justify-center gap-2 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Check-in
-            </button>
-            <button
-              onClick={handleCheckout}
-              disabled={loading || !isCheckedIn || isCheckedOut}
-              className="h-12 bg-red-600 hover:brightness-[0.92] active:scale-[0.99] text-white rounded-[10px] text-[15px] font-bold flex items-center justify-center gap-2 shadow-[0_4px_10px_rgba(0,0,0,0.1)] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Check-out
-            </button>
+          {/* Optional Note Input (Only show when not checked out yet) */}
+          {!isCheckedOut && (
+            <div className="mb-4">
+              <label className="block text-[12px] font-semibold text-gray-600 mb-1">
+                Ghi chú {isCheckedIn ? 'khi ra về' : 'khi vào ca'} (không bắt buộc):
+              </label>
+              <input
+                type="text"
+                value={userNote}
+                onChange={e => setUserNote(e.target.value)}
+                placeholder={isCheckedIn ? "VD: Bàn giao bé cho phụ huynh, hoàn thành giáo án..." : "VD: Điểm danh vào ca..."}
+                className="w-full h-10 px-3 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-gray-400"
+              />
+            </div>
+          )}
+
+          {/* Mobile-First Big Contextual Action Buttons */}
+          <div className="mb-3.5">
+            {!isCheckedIn ? (
+              /* Case 1: NOT CHECKED IN YET -> Big Green Check-in CTA Button */
+              <button
+                onClick={handleCheckin}
+                disabled={loading || (network !== null && !network.allowed)}
+                className="w-full h-14 bg-gradient-to-r from-[#2e8b57] to-[#257347] hover:brightness-105 active:scale-[0.99] text-white rounded-xl text-base font-bold flex items-center justify-center gap-2.5 shadow-md shadow-emerald-900/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {loading ? (
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <LogIn className="w-5 h-5 shrink-0" />
+                )}
+                <span>Điểm danh Vào Ca (Check-in)</span>
+              </button>
+            ) : !isCheckedOut ? (
+              /* Case 2: IN SHIFT -> Big Red Check-out CTA Button */
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={handleCheckout}
+                  disabled={loading}
+                  className="w-full h-14 bg-gradient-to-r from-rose-600 to-red-600 hover:brightness-105 active:scale-[0.99] text-white rounded-xl text-base font-bold flex items-center justify-center gap-2.5 shadow-md shadow-rose-900/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {loading ? (
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <LogOut className="w-5 h-5 shrink-0" />
+                  )}
+                  <span>Điểm danh Ra Về (Check-out)</span>
+                </button>
+                <p className="text-center text-[11.5px] text-gray-500">
+                  Cô đang trong ca làm việc từ <strong>{fmtTime(myRecord?.check_in_time)}</strong>. Chúc cô một ngày dạy học thật nhiều niềm vui!
+                </p>
+              </div>
+            ) : (
+              /* Case 3: COMPLETED SHIFT TODAY -> Celebratory completion banner */
+              <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <CheckCircle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-emerald-950 text-sm sm:text-base flex items-center gap-1.5">
+                      <span>Đã hoàn tất ca {currentShift?.name || 'làm việc'}!</span>
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                    </h4>
+                    <p className="text-xs text-emerald-800 mt-0.5">
+                      Vào ca: <strong>{fmtTime(myRecord?.check_in_time)}</strong> ➔ Ra về: <strong>{fmtTime(myRecord?.check_out_time)}</strong>
+                      {myRecord?.overtime_minutes ? ` • Tăng ca: +${myRecord.overtime_minutes}p` : ''}
+                    </p>
+                  </div>
+                </div>
+                {myRecord?.check_out_note && (
+                  <span className="text-[11.5px] font-semibold text-emerald-900 bg-white/80 border border-emerald-200 px-3 py-1.5 rounded-lg self-start sm:self-auto">
+                    {myRecord.check_out_note}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Result Alert Toast */}
@@ -304,9 +464,16 @@ export default function TeacherPage() {
         </section>
 
         {/* Section 2: Regular stats */}
-        <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
-          <h2 className="text-base font-bold text-gray-800 mb-3">Thống kê ca chính hôm nay ({todayFormatted})</h2>
-          <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
+        <section className="bg-white rounded-[16px] p-4 sm:p-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-gray-800">Thống kê ca chính hôm nay ({todayFormatted})</h2>
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full font-medium">
+              {regular.length} lượt
+            </span>
+          </div>
+
+          {/* Desktop Table View (>= 768px) */}
+          <div className="hidden md:block w-full overflow-x-auto rounded-lg border border-gray-200">
             <table className="w-full min-w-[580px] border-collapse text-[13.5px] text-left">
               <thead>
                 <tr>
@@ -351,12 +518,102 @@ export default function TeacherPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile-First Card View (< 768px) */}
+          <div className="md:hidden flex flex-col gap-2.5">
+            {regular.length === 0 ? (
+              <div className="text-center py-6 text-gray-400 text-xs">Chưa có ai chấm công ca chính hôm nay</div>
+            ) : (
+              regular.map((r, idx) => {
+                const isMe = r.user_id === user?.id;
+                const teacherName = `${getTitle(r.user?.gender)} ${r.user?.full_name?.split(' ').pop() || ''}`;
+                const noteText = r.check_out_note || (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '');
+                const isWorking = r.check_in_time && !r.check_out_time;
+
+                return (
+                  <div
+                    key={r.id}
+                    className={`p-3.5 rounded-xl border transition-all ${
+                      isMe
+                        ? 'bg-emerald-50/70 border-emerald-200/90 shadow-xs ring-1 ring-emerald-500/20'
+                        : 'bg-white border-gray-100 shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-bold">
+                          {idx + 1}
+                        </span>
+                        <span className={`text-sm font-bold ${isMe ? 'text-emerald-950 font-black' : 'text-gray-800'}`}>
+                          {teacherName}
+                        </span>
+                        {isMe && (
+                          <span className="bg-[#2e8b57] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-xs">
+                            Bạn
+                          </span>
+                        )}
+                      </div>
+                      {isWorking ? (
+                        <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Đang làm việc
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                          Đã ra ca
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Vào ca</span>
+                        <div className="flex items-baseline gap-1 mt-0.5">
+                          <span className="font-bold text-sm text-gray-800">{fmtTime(r.check_in_time)}</span>
+                          {r.late_minutes > 0 && (
+                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1 py-0.5 rounded">
+                              Trễ {r.late_minutes}p
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Ra ca</span>
+                        <div className="flex items-baseline gap-1 mt-0.5">
+                          <span className="font-bold text-sm text-gray-800">{fmtTime(r.check_out_time)}</span>
+                          {r.overtime_minutes > 0 && (
+                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">
+                              +{r.overtime_minutes}p
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {noteText && (
+                      <div className="text-[11.5px] text-slate-600 bg-white px-2.5 py-1.5 rounded-lg border border-dashed border-slate-200">
+                        <span className="font-semibold text-slate-500">Ghi chú:</span> {noteText}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
         </section>
 
         {/* Section 3: Extra stats */}
-        <section className="bg-white rounded-[14px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
-          <h2 className="text-base font-bold text-gray-800 mb-3">Thống kê ca ngoài giờ hôm nay ({todayFormatted})</h2>
-          <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
+        <section className="bg-white rounded-[16px] p-4 sm:p-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] border border-[#eef2f0]">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-gray-800">Thống kê ca ngoài giờ hôm nay ({todayFormatted})</h2>
+            <span className="text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full font-medium">
+              {extra.length} lượt
+            </span>
+          </div>
+
+          {/* Desktop Table View (>= 768px) */}
+          <div className="hidden md:block w-full overflow-x-auto rounded-lg border border-gray-200">
             <table className="w-full min-w-[520px] border-collapse text-[13.5px] text-left">
               <thead>
                 <tr>
@@ -399,6 +656,83 @@ export default function TeacherPage() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile-First Card View (< 768px) */}
+          <div className="md:hidden flex flex-col gap-2.5">
+            {extra.length === 0 ? (
+              <div className="text-center py-6 text-gray-400 text-xs">Chưa có ca ngoài giờ hôm nay</div>
+            ) : (
+              extra.map((r, idx) => {
+                const isMe = r.user_id === user?.id;
+                const teacherName = `${getTitle(r.user?.gender)} ${r.user?.full_name?.split(' ').pop() || ''}`;
+                const shiftLabel = r.shift?.name || (r.shift ? `${r.shift.start_time.slice(0, 5)} - ${r.shift.end_time.slice(0, 5)}` : 'Ngoài giờ');
+                const noteText = r.check_out_note || (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '');
+                const isWorking = r.check_in_time && !r.check_out_time;
+
+                return (
+                  <div
+                    key={r.id}
+                    className={`p-3.5 rounded-xl border transition-all ${
+                      isMe
+                        ? 'bg-purple-50/70 border-purple-200/90 shadow-xs ring-1 ring-purple-500/20'
+                        : 'bg-white border-gray-100 shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-bold">
+                          {idx + 1}
+                        </span>
+                        <span className={`text-sm font-bold ${isMe ? 'text-purple-950 font-black' : 'text-gray-800'}`}>
+                          {teacherName}
+                        </span>
+                        {isMe && (
+                          <span className="bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-xs">
+                            Bạn
+                          </span>
+                        )}
+                      </div>
+                      <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                        {shiftLabel}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Vào ca</span>
+                        <div className="flex items-baseline gap-1 mt-0.5">
+                          <span className="font-bold text-sm text-gray-800">{fmtTime(r.check_in_time)}</span>
+                          {r.late_minutes > 0 && (
+                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1 py-0.5 rounded">
+                              Trễ {r.late_minutes}p
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-2 rounded-lg border border-slate-100 flex flex-col">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Ra ca</span>
+                        <div className="flex items-baseline gap-1 mt-0.5">
+                          <span className="font-bold text-sm text-gray-800">{fmtTime(r.check_out_time)}</span>
+                          {isWorking && (
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded animate-pulse">
+                              Đang làm
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {noteText && (
+                      <div className="text-[11.5px] text-slate-600 bg-white px-2.5 py-1.5 rounded-lg border border-dashed border-slate-200">
+                        <span className="font-semibold text-slate-500">Ghi chú:</span> {noteText}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </section>
 
@@ -548,15 +882,12 @@ export default function TeacherPage() {
         <div className="text-xs font-semibold text-[#2e8b57]">
           LUMI Preschool - Mầm Non Trải Nghiệm STEAM &amp; Tiếng Anh
         </div>
-        <div className="max-w-[650px] mx-auto text-[12px] leading-relaxed text-gray-500 italic px-2">
-          &ldquo;Ở LUMI, mỗi em bé không chỉ được chăm sóc, mà được cô quan sát, ghi nhận và đồng hành theo nhịp phát triển riêng. Con học qua trải nghiệm thực tế, làm quen tiếng Anh tự nhiên và rèn tự lập, cảm xúc, nề nếp mỗi ngày.&rdquo;
-        </div>
         <div className="text-gray-500 font-medium">
-          📍 T16-33, Vinhomes Grand Park, TP. Thủ Đức
+          T16-33, Vinhomes Grand Park, TP. Thủ Đức
         </div>
 
         {/* Policy & Legal Links */}
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-[12px] font-semibold text-emerald-800/90 pt-3 pb-1 border-t border-gray-100">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-[12px] font-semibold text-emerald-800/90 pt-2 pb-1 border-t border-gray-100">
           <button
             onClick={() => setPolicyModal('privacy')}
             className="hover:text-emerald-950 hover:underline transition-colors cursor-pointer"
@@ -586,8 +917,14 @@ export default function TeacherPage() {
           </button>
         </div>
 
-        <div className="text-gray-500 mt-1 pt-2 border-t border-gray-100">
-          Thiết kế &amp; Phát triển hệ thống bởi: <a href="mailto:vietthanhnguyen.tsen@gmail.com" className="text-[#2e8b57] font-semibold hover:underline">Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)</a>
+        <div className="text-slate-600 text-sm mt-1 pt-2.5 border-t border-gray-100">
+          Thiết kế &amp; Phát triển hệ thống bởi:{' '}
+          <a
+            href="mailto:vietthanhnguyen.tsen@gmail.com"
+            className="text-[#2e8b57] font-bold hover:underline"
+          >
+            Nguyễn Việt Thành (vietthanhnguyen.tsen@gmail.com)
+          </a>
         </div>
         <div className="text-[11px] text-gray-400">© 2026 LUMI Preschool. All rights reserved.</div>
       </footer>
