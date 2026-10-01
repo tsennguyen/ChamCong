@@ -13,6 +13,8 @@ export default function SettingsPage() {
     school_ip_range: '*',
     overtime_rate: '40000',
     grace_minutes: '1',
+    center_open_time: '06:30',
+    center_close_time: '22:00',
   });
 
   useEffect(() => {
@@ -27,6 +29,8 @@ export default function SettingsPage() {
             school_ip_range: data.school_ip_range || prev.school_ip_range,
             overtime_rate: data.overtime_rate || prev.overtime_rate,
             grace_minutes: data.grace_minutes || prev.grace_minutes,
+            center_open_time: data.center_open_time || prev.center_open_time,
+            center_close_time: data.center_close_time || prev.center_close_time,
           }));
         }
       })
@@ -159,6 +163,47 @@ export default function SettingsPage() {
                 placeholder="1"
               />
               <p className="text-[11px] text-gray-400 mt-1">Cho phép vào trễ tối đa trước khi tính đi trễ.</p>
+            </div>
+          </div>
+
+          {/* Giờ mở cửa & Giờ đóng cửa trung tâm */}
+          <div className="p-4.5 bg-[#f8faf9] rounded-2xl border border-[#e2ece6] space-y-3.5">
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2e8b57]"></span>
+                Khung giờ hoạt động trung tâm & Giới hạn Check-out
+              </h3>
+              <p className="text-[11.5px] text-gray-500 mt-0.5 leading-relaxed">
+                Khi đến hoặc quá giờ đóng cửa, hệ thống sẽ tự động kết thúc tất cả ca chưa check-out và chuyển sang trạng thái <strong>&quot;Quên check-out&quot;</strong>.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Giờ mở cửa trung tâm (Bắt đầu check-in)
+                </label>
+                <input
+                  type="time"
+                  value={form.center_open_time}
+                  onChange={(e) => setForm({ ...form, center_open_time: e.target.value })}
+                  className="w-full h-11 px-3.5 border border-[#d8e3dc] rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-[#2e8b57] bg-white font-semibold"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">Giáo viên chỉ có thể điểm danh từ giờ này trở đi (VD: 06:30).</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Giờ đóng cửa trung tâm (Hạn chót check-out)
+                </label>
+                <input
+                  type="time"
+                  value={form.center_close_time}
+                  onChange={(e) => setForm({ ...form, center_close_time: e.target.value })}
+                  className="w-full h-11 px-3.5 border border-[#d8e3dc] rounded-xl text-xs sm:text-sm text-gray-900 outline-none focus:border-[#2e8b57] bg-white font-semibold"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">Đến giờ này sẽ tự động end ca và báo Quên check-out (VD: 22:00 hoặc 10:00).</p>
+              </div>
             </div>
           </div>
 

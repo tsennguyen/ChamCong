@@ -49,6 +49,7 @@ const translations = {
     teacherAttendance: 'Điểm danh',
     statusCompleted: 'Đã hoàn thành',
     statusNotEnough: 'Không đủ giờ làm',
+    statusForgotCheckout: 'Quên check-out',
     statusWorking: 'Đang làm việc',
     statusNotStarted: 'Chưa vào ca',
     currentShiftPrefix: 'Ca:',
@@ -74,7 +75,9 @@ const translations = {
     inShiftMsg: '',
     shiftCompleteSuccess: 'Đã hoàn tất ca làm việc!',
     shiftCompleteNotEnough: 'Ca làm việc không đủ giờ quy định (< 30 phút)',
+    shiftCompleteForgot: 'Ca đã tự động kết thúc (Quên check-out)',
     notEnoughWarning: 'Ca này không đủ thời gian tối thiểu 30 phút và không được tính công (0 công).',
+    forgotWarning: 'Hệ thống đã tự động kết thúc ca do hết giờ quy định của trung tâm. Ca này ghi nhận 0 tăng ca, vui lòng báo quản lý nếu bạn cần xác nhận lại giờ về thực tế.',
     successTitle: 'Điểm danh thành công',
     errorTitle: 'Chưa thể thực hiện',
     todayRegularTitle: 'Thống kê ca chính hôm nay',
@@ -133,6 +136,7 @@ const translations = {
     teacherAttendance: 'Attendance',
     statusCompleted: 'Completed',
     statusNotEnough: 'Not Enough Hours',
+    statusForgotCheckout: 'Forgot Check-out',
     statusWorking: 'On Duty',
     statusNotStarted: 'Not Clocked In',
     currentShiftPrefix: 'Shift:',
@@ -158,7 +162,9 @@ const translations = {
     inShiftMsg: '',
     shiftCompleteSuccess: 'Shift successfully completed!',
     shiftCompleteNotEnough: 'Shift duration below required standard (< 30 mins)',
+    shiftCompleteForgot: 'Shift Auto-Closed (Forgot Check-out)',
     notEnoughWarning: 'This shift did not meet the 30-minute minimum requirement and will not be counted (0 attendance).',
+    forgotWarning: 'The system auto-closed this shift due to center closing time. 0 overtime recorded; please contact admin if adjustment is needed.',
     successTitle: 'Attendance recorded successfully',
     errorTitle: 'Action could not be completed',
     todayRegularTitle: "Today's Main Shifts",
@@ -225,6 +231,7 @@ export default function TeacherPage() {
   const [loading, setLoading] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [network, setNetwork] = useState<{ allowed: boolean; client_ip: string; school_ssid: string } | null>(null);
+  const [centerHours, setCenterHours] = useState<{ open_time: string; close_time: string } | null>(null);
 
   // Policy modal state
   const [policyModal, setPolicyModal] = useState<PolicyType>(null);
@@ -272,19 +279,21 @@ export default function TeacherPage() {
         setRegular(data.regular || []);
         setExtra(data.extra || []);
         if (data.network) setNetwork(data.network);
+        if (data.center_hours) setCenterHours(data.center_hours);
       })
       .catch(() => {});
   }, []);
 
-  // Fetch monthly stats for current user
+  // Fetch monthly stats for current user ONLY
   const fetchMonthRecords = useCallback(() => {
-    fetch(`/api/attendance?month=${currentMonthStr}&_t=${Date.now()}`)
+    const userIdParam = user?.id ? `&user_id=${user.id}&my=1` : '&my=1';
+    fetch(`/api/attendance?month=${currentMonthStr}${userIdParam}&_t=${Date.now()}`)
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) setMonthRecords(data);
       })
       .catch(() => {});
-  }, [currentMonthStr]);
+  }, [currentMonthStr, user?.id]);
 
   useEffect(() => {
     fetchToday();
@@ -295,32 +304,42 @@ export default function TeacherPage() {
     return () => clearInterval(iv);
   }, [fetchToday, fetchMonthRecords]);
 
-  // Derived monthly calculations
+  // Dữ liệu chấm công chỉ của riêng cá nhân giáo viên đang đăng nhập
+  const myMonthRecords = useMemo(() => {
+    if (!user?.id) return monthRecords;
+    return monthRecords.filter(r => r.user_id === user.id);
+  }, [monthRecords, user?.id]);
+
+  // Derived monthly calculations for individual user
   const validMonthDays = useMemo(() => {
     const dates = new Set(
-      monthRecords
-        .filter(r => r.status === 'checked_out' && !(r.check_out_note || '').includes('Không đủ giờ'))
+      myMonthRecords
+        .filter(r => (r.status === 'checked_out' || r.status === 'needs_review') && !(r.check_out_note || '').includes('Không đủ giờ'))
         .map(r => r.attendance_date)
     );
     return dates.size;
-  }, [monthRecords]);
+  }, [myMonthRecords]);
 
   const totalMonthOTMinutes = useMemo(() => {
-    return monthRecords.reduce((sum, r) => sum + (r.overtime_minutes || 0), 0);
-  }, [monthRecords]);
+    return myMonthRecords.reduce((sum, r) => sum + (r.overtime_minutes || 0), 0);
+  }, [myMonthRecords]);
 
   const totalMonthOTAmount = useMemo(() => {
-    return monthRecords.reduce((sum, r) => sum + (r.overtime_amount || 0), 0);
-  }, [monthRecords]);
+    return myMonthRecords.reduce((sum, r) => sum + (r.overtime_amount || 0), 0);
+  }, [myMonthRecords]);
 
   const totalMonthLateMinutes = useMemo(() => {
-    return monthRecords.reduce((sum, r) => sum + (r.late_minutes || 0), 0);
-  }, [monthRecords]);
+    return myMonthRecords.reduce((sum, r) => sum + (r.late_minutes || 0), 0);
+  }, [myMonthRecords]);
 
   const myRecord = [...regular, ...extra].find(r => r.user_id === user?.id && r.shift_id === selectedShift);
   const isCheckedIn = !!myRecord;
-  const isCheckedOut = isCheckedIn && myRecord.status === 'checked_out';
-  const isNotEnoughTime = isCheckedOut && (
+  const isForgotCheckout = isCheckedIn && (
+    myRecord.status === 'needs_review' ||
+    (myRecord.check_out_note || '').includes('Quên check-out')
+  );
+  const isCheckedOut = isCheckedIn && (myRecord.status === 'checked_out' || isForgotCheckout);
+  const isNotEnoughTime = isCheckedOut && !isForgotCheckout && (
     myRecord?.check_out_note?.includes('Không đủ') ||
     myRecord?.check_out_note?.includes('not enough') ||
     myRecord?.status === 'insufficient'
@@ -447,7 +466,11 @@ export default function TeacherPage() {
           <div className="flex items-center justify-between gap-2 mb-3">
             <h2 className="text-base sm:text-lg font-bold text-[#2e8b57] flex items-center gap-2">
               <span>{t.teacherAttendance}</span>
-              {isCheckedOut ? (
+              {isForgotCheckout ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
+                  <AlertCircle className="w-3 h-3 text-amber-700" /> {t.statusForgotCheckout}
+                </span>
+              ) : isCheckedOut ? (
                 isNotEnoughTime ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 bg-rose-100 px-2.5 py-0.5 rounded-full border border-rose-200">
                     <AlertCircle className="w-3 h-3 text-rose-600" /> {t.statusNotEnough}
@@ -523,9 +546,16 @@ export default function TeacherPage() {
 
           {/* Shift Selection: Just the hours (07:00 - 17:00) */}
           <div className="mb-3">
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
-              {t.selectShiftLabel}
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-gray-700">
+                {t.selectShiftLabel}
+              </label>
+              {centerHours && (
+                <span className="text-[11px] text-gray-500 font-medium bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md">
+                  {lang === 'en' ? 'Hours:' : 'Giờ trường:'} <strong className="text-emerald-800">{centerHours.open_time} - {centerHours.close_time}</strong>
+                </span>
+              )}
+            </div>
             <div className="relative">
               <select
                 value={selectedShift}
@@ -618,9 +648,34 @@ export default function TeacherPage() {
                 <span>{t.btnCheckout}</span>
               </button>
             ) : (
-              /* Case 3: COMPLETED SHIFT TODAY */
-              isNotEnoughTime ? (
-                /* 3A: NOT ENOUGH HOURS -> RED WARNING BANNER */
+              /* Case 3: COMPLETED OR AUTO-ENDED SHIFT TODAY */
+              isForgotCheckout ? (
+                /* 3A: FORGOT CHECKOUT -> AMBER BANNER */
+                <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-300 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <AlertCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-amber-950 text-sm sm:text-base flex items-center gap-1.5">
+                        <span>{t.shiftCompleteForgot}</span>
+                      </h4>
+                      <p className="text-xs text-amber-900 mt-0.5">
+                        {t.clockInAt} <strong>{fmtTime(myRecord?.check_in_time)}</strong> ➔ {lang === 'en' ? 'Auto-closed at center closing time' : 'Hệ thống tự động đóng khi hết giờ trung tâm'}
+                      </p>
+                      <p className="text-[11.5px] text-amber-800 mt-1 font-medium">
+                        {t.forgotWarning}
+                      </p>
+                    </div>
+                  </div>
+                  {myRecord?.check_out_note && (
+                    <span className="text-[11px] font-bold text-amber-900 bg-white border border-amber-200 px-3 py-1.5 rounded-lg self-start sm:self-auto shadow-xs">
+                      {myRecord.check_out_note}
+                    </span>
+                  )}
+                </div>
+              ) : isNotEnoughTime ? (
+                /* 3B: NOT ENOUGH HOURS -> RED WARNING BANNER */
                 <div className="bg-gradient-to-r from-rose-50 via-red-50 to-rose-50 border border-rose-300 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -645,7 +700,7 @@ export default function TeacherPage() {
                   )}
                 </div>
               ) : (
-                /* 3B: FULL / VALID SHIFT -> GREEN CELEBRATION BANNER */
+                /* 3C: FULL / VALID SHIFT -> GREEN CELEBRATION BANNER */
                 <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -746,10 +801,13 @@ export default function TeacherPage() {
                 )}
                 {regular.map((r, i) => {
                   const isMe = r.user_id === user?.id;
-                  const isNotEnough = r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough');
-                  const noteText = r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes} ${t.mins}` : r.check_in_note || '—');
+                  const isForgot = r.status === 'needs_review' || (r.check_out_note || '').includes('Quên check-out');
+                  const isNotEnough = !isForgot && (r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough'));
+                  const noteText = isForgot
+                    ? (lang === 'en' ? 'Forgot Check-out' : 'Quên check-out')
+                    : (r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes} ${t.mins}` : r.check_in_note || '—'));
                   return (
-                    <tr key={r.id} className={`${isMe ? (isNotEnough ? 'bg-rose-50 font-semibold' : 'bg-green-50 font-semibold') : (isNotEnough ? 'bg-rose-50/40' : '')} hover:bg-slate-50`}>
+                    <tr key={r.id} className={`${isMe ? (isForgot ? 'bg-amber-50 font-semibold' : isNotEnough ? 'bg-rose-50 font-semibold' : 'bg-green-50 font-semibold') : (isForgot ? 'bg-amber-50/40' : isNotEnough ? 'bg-rose-50/40' : '')} hover:bg-slate-50`}>
                       <td className="px-3 py-2.5 border-b border-slate-100 whitespace-nowrap">{i + 1}</td>
                       <td className="px-3 py-2.5 border-b border-slate-100 whitespace-nowrap">
                         <strong>{getTitle(r.user?.gender)} {r.user?.full_name?.split(' ').pop()}{isMe ? ` (${t.youBadge})` : ''}</strong>
@@ -763,7 +821,11 @@ export default function TeacherPage() {
                         {r.overtime_minutes > 0 ? <span className="text-blue-600 font-bold bg-blue-100 px-1.5 py-0.5 rounded-md">+{r.overtime_minutes}</span> : '0'}
                       </td>
                       <td className="px-3 py-2.5 border-b border-slate-100 whitespace-nowrap">
-                        {isNotEnough ? (
+                        {isForgot ? (
+                          <span className="inline-block px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                            {noteText}
+                          </span>
+                        ) : isNotEnough ? (
                           <span className="inline-block px-2 py-0.5 rounded-md text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200">
                             {noteText}
                           </span>
@@ -788,15 +850,20 @@ export default function TeacherPage() {
               regular.map((r, idx) => {
                 const isMe = r.user_id === user?.id;
                 const teacherName = `${getTitle(r.user?.gender)} ${r.user?.full_name?.split(' ').pop() || ''}`;
-                const isNotEnough = r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough');
-                const noteText = r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes} ${t.mins}` : r.check_in_note || '');
-                const isWorking = r.check_in_time && !r.check_out_time;
+                const isForgot = r.status === 'needs_review' || (r.check_out_note || '').includes('Quên check-out');
+                const isNotEnough = !isForgot && (r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough'));
+                const noteText = isForgot
+                  ? (lang === 'en' ? 'Forgot Check-out' : 'Quên check-out')
+                  : (r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes} ${t.mins}` : r.check_in_note || ''));
+                const isWorking = r.check_in_time && !r.check_out_time && !isForgot;
 
                 return (
                   <div
                     key={r.id}
                     className={`p-3.5 rounded-xl border transition-all ${
-                      isNotEnough
+                      isForgot
+                        ? 'bg-amber-50/80 border-amber-300 shadow-xs ring-1 ring-amber-500/20'
+                        : isNotEnough
                         ? 'bg-rose-50/80 border-rose-200 shadow-xs ring-1 ring-rose-500/20'
                         : isMe
                         ? 'bg-emerald-50/70 border-emerald-200/90 shadow-xs ring-1 ring-emerald-500/20'
@@ -821,6 +888,10 @@ export default function TeacherPage() {
                         <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           {t.workingBadge}
+                        </span>
+                      ) : isForgot ? (
+                        <span className="text-[11px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full">
+                          {t.statusForgotCheckout}
                         </span>
                       ) : isNotEnough ? (
                         <span className="text-[11px] font-bold text-rose-800 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-full">
@@ -903,11 +974,14 @@ export default function TeacherPage() {
                 )}
                 {extra.map((r, i) => {
                   const isMe = r.user_id === user?.id;
-                  const isNotEnough = r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough');
+                  const isForgot = r.status === 'needs_review' || (r.check_out_note || '').includes('Quên check-out');
+                  const isNotEnough = !isForgot && (r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough'));
                   const shiftLabel = r.shift?.name || (r.shift ? `${r.shift.start_time.slice(0, 5)} - ${r.shift.end_time.slice(0, 5)}` : t.extraShift);
-                  const noteText = r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes} ${t.mins}` : r.check_in_note || '—');
+                  const noteText = isForgot
+                    ? (lang === 'en' ? 'Forgot Check-out' : 'Quên check-out')
+                    : (r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes} ${t.mins}` : r.check_in_note || '—'));
                   return (
-                    <tr key={r.id} className={`${isMe ? (isNotEnough ? 'bg-rose-50 font-semibold' : 'bg-purple-50 font-semibold') : (isNotEnough ? 'bg-rose-50/40' : '')} hover:bg-slate-50`}>
+                    <tr key={r.id} className={`${isMe ? (isForgot ? 'bg-amber-50 font-semibold' : isNotEnough ? 'bg-rose-50 font-semibold' : 'bg-purple-50 font-semibold') : (isForgot ? 'bg-amber-50/40' : isNotEnough ? 'bg-rose-50/40' : '')} hover:bg-slate-50`}>
                       <td className="px-3 py-2.5 border-b border-slate-100">{i + 1}</td>
                       <td className="px-3 py-2.5 border-b border-slate-100">
                         <strong>{getTitle(r.user?.gender)} {r.user?.full_name?.split(' ').pop()}{isMe ? ` (${t.youBadge})` : ''}</strong>
@@ -920,7 +994,11 @@ export default function TeacherPage() {
                       <td className="px-3 py-2.5 border-b border-slate-100">{fmtTime(r.check_in_time)}</td>
                       <td className="px-3 py-2.5 border-b border-slate-100">{fmtTime(r.check_out_time)}</td>
                       <td className="px-3 py-2.5 border-b border-slate-100">
-                        {isNotEnough ? (
+                        {isForgot ? (
+                          <span className="inline-block px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                            {noteText}
+                          </span>
+                        ) : isNotEnough ? (
                           <span className="inline-block px-2 py-0.5 rounded-md text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200">
                             {noteText}
                           </span>
@@ -945,16 +1023,21 @@ export default function TeacherPage() {
               extra.map((r, idx) => {
                 const isMe = r.user_id === user?.id;
                 const teacherName = `${getTitle(r.user?.gender)} ${r.user?.full_name?.split(' ').pop() || ''}`;
-                const isNotEnough = r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough');
+                const isForgot = r.status === 'needs_review' || (r.check_out_note || '').includes('Quên check-out');
+                const isNotEnough = !isForgot && (r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough'));
                 const shiftLabel = r.shift?.name || (r.shift ? `${r.shift.start_time.slice(0, 5)} - ${r.shift.end_time.slice(0, 5)}` : t.extraShift);
-                const noteText = r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes} ${t.mins}` : r.check_in_note || '');
-                const isWorking = r.check_in_time && !r.check_out_time;
+                const noteText = isForgot
+                  ? (lang === 'en' ? 'Forgot Check-out' : 'Quên check-out')
+                  : (r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes} ${t.mins}` : r.check_in_note || ''));
+                const isWorking = r.check_in_time && !r.check_out_time && !isForgot;
 
                 return (
                   <div
                     key={r.id}
                     className={`p-3.5 rounded-xl border transition-all ${
-                      isNotEnough
+                      isForgot
+                        ? 'bg-amber-50/80 border-amber-300 shadow-xs ring-1 ring-amber-500/20'
+                        : isNotEnough
                         ? 'bg-rose-50/80 border-rose-200 shadow-xs ring-1 ring-rose-500/20'
                         : isMe
                         ? 'bg-purple-50/70 border-purple-200/90 shadow-xs ring-1 ring-purple-500/20'
@@ -1000,6 +1083,11 @@ export default function TeacherPage() {
                           {isWorking && (
                             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded animate-pulse">
                               {t.workingBadge}
+                            </span>
+                          )}
+                          {isForgot && (
+                            <span className="text-[10px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-1 py-0.5 rounded">
+                              {t.statusForgotCheckout}
                             </span>
                           )}
                           {isNotEnough && (
@@ -1094,18 +1182,21 @@ export default function TeacherPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {monthRecords.length === 0 ? (
+                    {myMonthRecords.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="text-center py-4 text-gray-400">
                           {t.noMonthData}
                         </td>
                       </tr>
                     ) : (
-                      monthRecords.map(r => {
-                        const isNotEnough = r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough');
-                        const noteText = r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes}p` : r.check_in_note || '—');
+                      myMonthRecords.map(r => {
+                        const isForgot = r.status === 'needs_review' || (r.check_out_note || '').includes('Quên check-out');
+                        const isNotEnough = !isForgot && (r.check_out_note?.includes('Không đủ') || r.check_out_note?.includes('not enough'));
+                        const noteText = isForgot
+                          ? (lang === 'en' ? 'Forgot Check-out' : 'Quên check-out')
+                          : (r.check_out_note || (r.late_minutes > 0 ? `${t.late} ${r.late_minutes}p` : r.check_in_note || '—'));
                         return (
-                          <tr key={r.id} className={`hover:bg-slate-50 ${isNotEnough ? 'bg-rose-50/50' : ''}`}>
+                          <tr key={r.id} className={`hover:bg-slate-50 ${isForgot ? 'bg-amber-50/40' : isNotEnough ? 'bg-rose-50/50' : ''}`}>
                             <td className="px-3 py-2 font-medium text-slate-800">{formatDate(r.attendance_date)}</td>
                             <td className="px-3 py-2 font-medium text-slate-700">{r.shift?.name || '—'}</td>
                             <td className="px-3 py-2 text-slate-600">{formatTime(r.check_in_time)}</td>
@@ -1119,7 +1210,9 @@ export default function TeacherPage() {
                             <td className="px-3 py-2">
                               <span
                                 className={`inline-block px-2 py-0.5 rounded text-[11px] ${
-                                  isNotEnough
+                                  isForgot
+                                    ? 'bg-amber-100 text-amber-900 font-bold border border-amber-300'
+                                    : isNotEnough
                                     ? 'bg-rose-100 text-rose-800 font-bold border border-rose-200'
                                     : noteText.includes('Đủ giờ')
                                     ? 'bg-emerald-100 text-emerald-800'

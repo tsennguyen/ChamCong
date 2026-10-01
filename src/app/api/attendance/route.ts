@@ -8,6 +8,7 @@ import { getGreeting } from '@/lib/greeting';
 import { getTodayString, formatTimeWithSeconds } from '@/lib/utils';
 import { performFraudCheck, getClientIP } from '@/lib/anti-fraud';
 import { syncCheckinToSheets, syncCheckoutToSheets } from '@/lib/google-sheets';
+import { getCenterHours, checkCenterHours, processAutoCloseAttendance } from '@/lib/auto-checkout';
 
 // POST — Check-in
 export async function POST(req: Request) {
@@ -23,6 +24,16 @@ export async function POST(req: Request) {
     }
 
     const supabase = createAdminClient();
+    // Tự động quét và đóng các ca quá hạn trước khi thực hiện thao tác mới
+    await processAutoCloseAttendance(supabase);
+
+    // Kiểm tra giờ hoạt động trung tâm (giờ mở - đóng cửa)
+    const centerHours = await getCenterHours(supabase);
+    const hoursCheck = checkCenterHours(centerHours.open_time, centerHours.close_time);
+    if (!hoursCheck.allowed) {
+      return NextResponse.json({ error: hoursCheck.reason }, { status: 400 });
+    }
+
     const userId = (session.user as any).id;
     const userGender = (session.user as any).gender;
     let userName = session.user.name || '';
@@ -204,6 +215,9 @@ export async function PUT(req: Request) {
     }
 
     const supabase = createAdminClient();
+    // Quét và đóng các ca quá hạn trước khi xử lý check-out
+    await processAutoCloseAttendance(supabase);
+
     const userId = (session.user as any).id;
     const userGender = (session.user as any).gender;
     let userName = session.user.name || '';
@@ -226,6 +240,11 @@ export async function PUT(req: Request) {
     }
 
     if (record.status !== 'checked_in') {
+      if (record.status === 'needs_review' && (record.check_out_note?.includes('Quên check-out') || record.note?.includes('Quên check-out'))) {
+        return NextResponse.json({
+          error: 'Ca làm việc này đã tự động kết thúc do hết giờ quy định của trung tâm (Quên check-out). Vui lòng liên hệ quản lý để được hỗ trợ điều chỉnh.'
+        }, { status: 400 });
+      }
       return NextResponse.json({ error: 'Đã check-out rồi' }, { status: 400 });
     }
 
@@ -323,6 +342,9 @@ export async function GET(req: Request) {
     }
 
     const supabase = createAdminClient();
+    // Tự động quét và đóng các ca quá hạn
+    await processAutoCloseAttendance(supabase);
+
     const url = new URL(req.url);
     const date = url.searchParams.get('date');
     const month = url.searchParams.get('month');
@@ -330,6 +352,7 @@ export async function GET(req: Request) {
     const to = url.searchParams.get('to');
     const userId = url.searchParams.get('user_id');
     const shiftType = url.searchParams.get('shift_type');
+    const isMyOnly = url.searchParams.get('my') === '1';
 
     let query = supabase
       .from('attendance_records')
@@ -343,7 +366,7 @@ export async function GET(req: Request) {
 
     const sessionUser = session.user as any;
     const isAdmin = sessionUser?.role === 'admin';
-    const filterUserId = isAdmin ? (userId || null) : sessionUser?.id;
+    const filterUserId = isMyOnly ? sessionUser?.id : (isAdmin ? (userId || null) : sessionUser?.id);
 
     if (date) query = query.eq('attendance_date', date);
     if (month) {

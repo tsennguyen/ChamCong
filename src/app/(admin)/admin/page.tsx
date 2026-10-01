@@ -73,7 +73,7 @@ export default function AdminDashboard() {
   // Table filters
   const [searchTerm, setSearchTerm] = useState('');
   const [filterShiftType, setFilterShiftType] = useState<'all' | 'regular' | 'overtime'>('all');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'valid' | 'insufficient' | 'late' | 'overtime' | 'working'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'valid' | 'insufficient' | 'forgot' | 'late' | 'overtime' | 'working'>('all');
 
   const todayStr = getTodayString();
 
@@ -207,9 +207,11 @@ export default function AdminDashboard() {
 
       // Status/Quality filter
       const note = r.check_out_note || '';
-      const isInsuff = note.includes('Không đủ giờ');
-      if (filterStatus === 'valid' && (r.status !== 'checked_out' || isInsuff)) return false;
+      const isForgot = r.status === 'needs_review' || note.includes('Quên check-out');
+      const isInsuff = !isForgot && note.includes('Không đủ giờ');
+      if (filterStatus === 'valid' && (r.status !== 'checked_out' || isInsuff || isForgot)) return false;
       if (filterStatus === 'insufficient' && !isInsuff) return false;
+      if (filterStatus === 'forgot' && !isForgot) return false;
       if (filterStatus === 'late' && (r.late_minutes || 0) <= 0) return false;
       if (filterStatus === 'overtime' && (r.overtime_minutes || 0) <= 0) return false;
       if (filterStatus === 'working' && r.status !== 'checked_in') return false;
@@ -614,6 +616,7 @@ export default function AdminDashboard() {
                 <option value="all">Tất cả trạng thái</option>
                 <option value="valid">Đủ giờ làm (Hợp lệ)</option>
                 <option value="insufficient">Không đủ giờ (0 công)</option>
+                <option value="forgot">Quên check-out (Tự động đóng)</option>
                 <option value="late">Có đi trễ</option>
                 <option value="overtime">Có tăng ca</option>
                 <option value="working">Đang làm việc (Chưa về)</option>
@@ -661,14 +664,15 @@ export default function AdminDashboard() {
                   const noteText =
                     r.check_out_note ||
                     (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '—');
-                  const isInsufficient = noteText.includes('Không đủ giờ') || noteText.includes('Không đủ');
+                  const isForgot = r.status === 'needs_review' || noteText.includes('Quên check-out');
+                  const isInsufficient = !isForgot && (noteText.includes('Không đủ giờ') || noteText.includes('Không đủ'));
                   const isRegular = r.shift_type === 'regular' || r.shift?.type === 'regular';
 
                   return (
                     <tr
                       key={r.id}
                       className={`hover:bg-[#f9fbf9] transition-colors ${
-                        isInsufficient ? 'bg-rose-50/40' : r.status === 'checked_in' ? 'bg-blue-50/30' : ''
+                        isForgot ? 'bg-amber-50/40' : isInsufficient ? 'bg-rose-50/40' : r.status === 'checked_in' ? 'bg-blue-50/30' : ''
                       }`}
                     >
                       <td className="px-4 py-3 text-gray-400 font-semibold">{i + 1}</td>
@@ -735,8 +739,8 @@ export default function AdminDashboard() {
                           </span>
                         )}
                         {r.status === 'needs_review' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                            Cần xác nhận
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                            {isForgot ? 'Quên check-out' : 'Cần xác nhận'}
                           </span>
                         )}
                       </td>
@@ -780,14 +784,15 @@ export default function AdminDashboard() {
               const noteText =
                 r.check_out_note ||
                 (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '—');
-              const isInsufficient = noteText.includes('Không đủ giờ') || noteText.includes('Không đủ');
+              const isForgot = r.status === 'needs_review' || noteText.includes('Quên check-out');
+              const isInsufficient = !isForgot && (noteText.includes('Không đủ giờ') || noteText.includes('Không đủ'));
               const isRegular = r.shift_type === 'regular' || r.shift?.type === 'regular';
 
               return (
                 <div
                   key={r.id}
                   className={`p-3.5 flex flex-col gap-2.5 transition-all ${
-                    isInsufficient ? 'bg-rose-50/40' : r.status === 'checked_in' ? 'bg-blue-50/20' : ''
+                    isForgot ? 'bg-amber-50/40' : isInsufficient ? 'bg-rose-50/40' : r.status === 'checked_in' ? 'bg-blue-50/20' : ''
                   }`}
                 >
                   {/* Header: Teacher Name, Date & Status */}
@@ -821,6 +826,10 @@ export default function AdminDashboard() {
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                         Đang làm
+                      </span>
+                    ) : isForgot ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
+                        Quên check-out
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">

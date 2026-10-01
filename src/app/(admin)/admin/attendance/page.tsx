@@ -35,7 +35,14 @@ export default function AttendancePage() {
   const fmtDate = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const getTitle = (g?: string) => g === 'male' ? 'Thầy' : 'Cô';
 
-  const statusBadge = (s: string, isInsufficient = false) => {
+  const statusBadge = (s: string, isInsufficient = false, isForgot = false) => {
+    if (isForgot) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+          Quên check-out
+        </span>
+      );
+    }
     if (isInsufficient) {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200">
@@ -136,12 +143,13 @@ export default function AttendancePage() {
               )}
               {records.map((r, i) => {
                 const noteText = r.check_out_note || (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '—');
-                const isInsufficient = noteText.includes('Không đủ giờ');
+                const isForgot = r.status === 'needs_review' || (r.check_out_note || '').includes('Quên check-out');
+                const isInsufficient = !isForgot && noteText.includes('Không đủ giờ');
                 return (
                   <tr
                     key={r.id}
                     className={`hover:bg-[#f9fbf9] transition-colors ${
-                      isInsufficient ? 'bg-rose-50/40' : r.status === 'needs_review' ? 'bg-amber-50/40' : ''
+                      isForgot ? 'bg-amber-50/40' : isInsufficient ? 'bg-rose-50/40' : r.status === 'needs_review' ? 'bg-amber-50/40' : ''
                     }`}
                   >
                     <td className="px-4 py-3 text-gray-400 font-semibold">{i + 1}</td>
@@ -180,7 +188,7 @@ export default function AttendancePage() {
                         <span className="text-gray-400">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">{statusBadge(r.status, isInsufficient)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{statusBadge(r.status, isInsufficient, isForgot)}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block px-2.5 py-1 rounded-lg text-[11px] leading-tight font-medium ${
@@ -217,12 +225,13 @@ export default function AttendancePage() {
           )}
           {records.map((r, i) => {
             const noteText = r.check_out_note || (r.late_minutes > 0 ? `Trễ ${r.late_minutes} phút` : r.check_in_note || '—');
-            const isInsufficient = noteText.includes('Không đủ giờ');
+            const isForgot = r.status === 'needs_review' || (r.check_out_note || '').includes('Quên check-out');
+            const isInsufficient = !isForgot && noteText.includes('Không đủ giờ');
             return (
               <div
                 key={r.id}
                 className={`p-3.5 flex flex-col gap-2.5 transition-all ${
-                  isInsufficient ? 'bg-rose-50/40' : r.status === 'needs_review' ? 'bg-amber-50/20' : ''
+                  isForgot ? 'bg-amber-50/40' : isInsufficient ? 'bg-rose-50/40' : r.status === 'needs_review' ? 'bg-amber-50/20' : ''
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -239,7 +248,7 @@ export default function AttendancePage() {
                       Ca: <span className="font-semibold text-gray-800">{r.shift?.name || '—'}</span>
                     </div>
                   </div>
-                  <div>{statusBadge(r.status, isInsufficient)}</div>
+                  <div>{statusBadge(r.status, isInsufficient, isForgot)}</div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
